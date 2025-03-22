@@ -197,6 +197,17 @@
     document.getElementById('companySelect').addEventListener('change', function () {
       renderChart(this.value);
     });
+    // 向父頁面傳送高度
+function postHeight() {
+  const height = document.documentElement.scrollHeight;
+  window.parent.postMessage({ chartHeight: height }, '*');
+}
+
+// 初始載入 & 切換公司後都執行一次
+window.addEventListener('load', postHeight);
+document.getElementById('companySelect').addEventListener('change', function () {
+  setTimeout(postHeight, 300);  // 等圖表重繪完
+});
   </script>
 </body>
 </html>
