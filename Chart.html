@@ -192,22 +192,18 @@
         }
       });
     }
+  function postHeight() {
+    const height = document.documentElement.scrollHeight;
+    window.parent.postMessage({ chartHeight: height }, '*');
+  }
 
-    renderChart('sf');
-    document.getElementById('companySelect').addEventListener('change', function () {
-      renderChart(this.value);
-    });
-    // 向父頁面傳送高度
-function postHeight() {
-  const height = document.documentElement.scrollHeight;
-  window.parent.postMessage({ chartHeight: height }, '*');
-}
+  // 初始載入
+  window.addEventListener('load', postHeight);
 
-// 初始載入 & 切換公司後都執行一次
-window.addEventListener('load', postHeight);
-document.getElementById('companySelect').addEventListener('change', function () {
-  setTimeout(postHeight, 300);  // 等圖表重繪完
-});
-  </script>
+  // 公司切換後，等待圖表渲染完成再通知高度
+  document.getElementById('companySelect').addEventListener('change', function () {
+    setTimeout(postHeight, 500); // 避免圖表未完成就計算高度
+  });
+</script>
 </body>
 </html>
