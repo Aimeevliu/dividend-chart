@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
   <meta charset="UTF-8">
-  <title>金融股歷年股利政策（含配發率）</title>
+  <title>金融股歷年股利政策（透明背景）</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     html, body {
@@ -10,7 +10,7 @@
       padding: 0;
       height: 100%;
       font-family: "Noto Sans TC", sans-serif;
-      background: #f8f9fa;
+      background: transparent;
     }
 
     #container {
@@ -18,9 +18,7 @@
       margin: 0 auto;
       padding: 30px 20px;
       box-sizing: border-box;
-      background: white;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+      background: transparent;
     }
 
     h2 {
@@ -42,6 +40,7 @@
     #myChart {
       width: 100% !important;
       height: 500px !important;
+      background: transparent;
     }
 
     #data-source {
@@ -56,7 +55,6 @@
   <div id="container">
     <h2>金融股歷年股利政策</h2>
 
-    <!-- 🎯 中央下拉選單 -->
     <select id="companySelect">
       <option value="sf">永豐金</option>
       <option value="ysb">玉山金</option>
@@ -150,28 +148,37 @@
             legend: {
               position: 'top',
               labels: {
-                padding: 16,
-                font: { size: 14 }
+                padding: 14,
+                font: { size: 20 }
               }
             }
           },
-          layout: { padding: { top: 20 } },
+          layout: {
+            padding: { top: 20 }
+          },
           scales: {
-            x: { stacked: true },
+            x: {
+              stacked: true,
+              grid: { color: 'rgba(0,0,0,0.05)' }
+            },
             y: {
+              stacked: true,
               position: 'left',
               beginAtZero: true,
               max: 2.5,
               title: {
                 display: true,
                 text: '每股盈餘 / 股利（元）'
-              }
+              },
+              grid: { color: 'rgba(0,0,0,0.05)' }
             },
             y1: {
               position: 'right',
               beginAtZero: true,
               max: 120,
-              grid: { drawOnChartArea: false },
+              grid: {
+                drawOnChartArea: false
+              },
               title: {
                 display: true,
                 text: '配發率（%）'
