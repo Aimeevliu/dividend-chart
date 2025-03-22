@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <title>金融股股利政策（透明背景）</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
   <style>
     html, body {
       margin: 0;
@@ -12,21 +13,17 @@
       font-family: "Noto Sans TC", sans-serif;
       background: transparent;
     }
-
     #container {
       max-width: 960px;
       margin: 0 auto;
       padding: 30px 20px;
       box-sizing: border-box;
-      background: transparent;
     }
-
     h2 {
       text-align: center;
       margin-bottom: 16px;
       color: #333;
     }
-
     #companySelect {
       display: block;
       margin: 0 auto 24px;
@@ -36,13 +33,10 @@
       border-radius: 6px;
       box-shadow: 0 1px 2px rgba(0,0,0,0.04);
     }
-
     #myChart {
       width: 100% !important;
       height: 500px !important;
-      background: transparent;
     }
-
     #data-source {
       text-align: right;
       font-size: 14px;
@@ -53,13 +47,24 @@
 </head>
 <body>
   <div id="container">
-    <h2>金融股最新股利政策</h2>
-
+    <h2>金融股董事會決議最新股利</h2>
     <select id="companySelect">
-      <option value="sf">永豐金</option>
-      <option value="ysb">玉山金</option>
+      <option value="2812">台中銀</option>
+      <option value="2816">旺旺保</option>
+      <option value="2838">聯邦銀</option>
+      <option value="2845">遠東銀</option>
+      <option value="2850">新產</option>
+      <option value="2851">中再保</option>
+      <option value="2852">第一保</option>
+      <option value="2855">統一證</option>
+      <option value="2884">玉山金</option>
+      <option value="2885">元大金</option>
+      <option value="2889">國票金</option>
+      <option value="2890">永豐金</option>
+      <option value="5876">上海商銀</option>
+      <option value="6005">群益證</option>
+      <option value="6024">群益期</option>
     </select>
-
     <canvas id="myChart"></canvas>
     <div style="text-align:center; font-size: 14px; margin-top: 12px;">（左軸單位：元；右軸單位：%）</div>
     <div id="data-source">資料來源：公開資訊觀測站；劉家瑜製表</div>
@@ -68,19 +73,8 @@
   <script>
     const ctx = document.getElementById('myChart').getContext('2d');
     const labels = ['2015','2016','2017','2018','2019','2020','2021','2022','2023','2024'];
-
-    const dataMap = {
-      sf: {
-        EPS: [1.07, 0.78, 0.82, 0.84, 1.11, 1.09, 1.44, 1.4, 1.62, 1.75],
-        cash: [0.366544, 0.306492, 0.470297, 0.598217, 0.658415, 0.658415, 0.759999, 0.585366, 0.75, 0.91],
-        stock: [0.5, 0.35, 0.2, 0.0, 0.0, 0.0, 0.1, 0.2, 0.25, 0.34]
-      },
-      ysb: {
-        EPS: [1.63, 1.5, 1.49, 1.58, 1.73, 1.43, 1.54, 1.1, 1.41, 1.63],
-        cash: [0.220333, 0.330629, 0.437947, 0.50758, 0.65403, 0.535153, 0.627404, 0.185667, 1.2, 1.2],
-        stock: [1.0, 0.74084, 0.61262, 0.71101, 0.79694, 0.61112, 0.67392, 0.37877, 0.20033, 0.1]
-      }
-    };
+    const dataMap = 
+{"2812": {"name": "台中銀", "EPS": [1.14, 1.09, 1.1, 1.18, 1.16, 1.03, 1.1, 1.12, 1.31, 1.5], "cash": [0.3442, 0.3982, 0.334, 0.2187, 0.2187, 0.2067, 0.2267, 0.2841, 0.4, 0.39], "stock": [0.17, 0.17, 0.25, 0.52, 0.52, 0.45, 0.5, 0.42, 0.56, 0.73]}, "2816": {"name": "旺旺保", "EPS": [1.23, 1.03, 3.12, 2.84, 3.3, 3.14, 3.12, -5.91, 5.37, 5.46], "cash": [0.0952, 0.0, 0.6667, 0.8571, 0.8381, 0.8, 1.0, 0.0, 0.0, 1.5], "stock": [0.0, 0.0, 0.0, 0.0, 0.5, 0.0, 0.0, 0.0, 0.0, 0.0]}, "2838": {"name": "聯邦銀", "EPS": [1.2, 1.01, 1.05, 1.07, 1.0, 0.96, 1.21, 0.85, 1.02, 1.16], "cash": [0.2609, 0.2935, 0.2687, 0.0, 0.0769, 0.0, 0.1335, 0.0935, 0.2, 0.35], "stock": [0.0, 0.0, 0.3, 0.7, 0.7, 0.631, 0.885, 0.5, 0.7, 0.7]}, "2845": {"name": "遠東銀", "EPS": [1.3, 1.04, 0.9, 1.08, 1.08, 0.73, 0.84, 1.0, 1.03, 1.01], "cash": [0.3276, 0.3407, 0.3742, 0.403, 0.4207, 0.3138, 0.4093, 0.4089, 0.506, 0.5], "stock": [0.2, 0.23, 0.271, 0.265, 0.275, 0.191, 0.158, 0.0, 0.506, 0.25]}, "2850": {"name": "新產", "EPS": [3.97, 3.35, 4.32, 5.6, 4.94, 5.16, 7.13, 6.34, 9.22, 10.47], "cash": [1.5736, 1.51, 1.82, 2.65, 1.8, 1.95, 3.2, 2.54, 4.99, 7.15], "stock": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]}, "2851": {"name": "中再保", "EPS": [1.36, 1.36, 2.47, 1.78, 1.87, 2.57, 3.5, 0.41, 2.61, 3.14], "cash": [0.6468, 0.462, 0.9703, 0.8732, 0.8732, 1.2613, 1.7465, 0.0, 1.4, 1.9], "stock": [0.0, 0.0, 0.5, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]}, "2852": {"name": "第一保", "EPS": [0.65, 1.59, 1.53, 1.63, 1.93, 0.51, 1.84, 1.86, 2.11, 3.0], "cash": [0.0, 0.65, 0.6, 0.49, 0.96, 0.35, 1.21, 0.72, 1.13, 2.1], "stock": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]}, "2855": {"name": "統一證", "EPS": [0.72, 0.62, 1.88, 0.87, 1.72, 2.58, 2.75, 0.5, 1.98, 3.0], "cash": [0.1768, 0.0, 1.1312, 0.659, 0.9427, 1.5, 1.89, 0.39, 1.32, 1.1], "stock": [0.312, 0.41, 0.0, 0.0, 0.2, 0.4, 0.0, 0.0, 0.0, 1.0]}, "2884": {"name": "玉山金", "EPS": [1.63, 1.5, 1.49, 1.58, 1.73, 1.43, 1.54, 1.1, 1.41, 1.63], "cash": [0.2203, 0.3306, 0.4379, 0.5076, 0.654, 0.5352, 0.6274, 0.1857, 1.2, 1.2], "stock": [1.0, 0.7408, 0.6126, 0.711, 0.7969, 0.6111, 0.6739, 0.3788, 0.2003, 0.1]}, "2885": {"name": "元大金", "EPS": [1.02, 1.16, 1.37, 1.59, 1.75, 1.99, 2.87, 1.72, 2.09, 2.77], "cash": [0.3255, 0.4038, 0.5016, 0.8115, 0.5861, 1.1253, 1.4067, 0.7727, 1.0784, 1.55], "stock": [0.0, 0.0, 0.0, 0.0, 0.4, 0.0, 0.3, 0.15, 0.2, 0.3]}, "2889": {"name": "國票金", "EPS": [0.58, 0.78, 0.86, 0.72, 0.92, 1.12, 1.3, 0.41, 0.58, 0.61], "cash": [0.2148, 0.456, 0.5576, 0.3899, 0.5708, 0.5785, 0.5988, 0.0, 0.73, 0.3], "stock": [0.2639, 0.1489, 0.12, 0.1, 0.1706, 0.35, 0.5, 0.0, 0.246, 0.287]}, "2890": {"name": "永豐金", "EPS": [1.07, 0.78, 0.82, 0.84, 1.11, 1.09, 1.44, 1.4, 1.62, 1.75], "cash": [0.3665, 0.3065, 0.4703, 0.5982, 0.6584, 0.6584, 0.76, 0.5854, 0.75, 0.91], "stock": [0.5, 0.35, 0.2, 0.0, 0.0, 0.0, 0.1, 0.2, 0.25, 0.34]}, "5876": {"name": "上海商銀", "EPS": [2.98, 2.89, 3.04, 3.37, 3.5, 3.01, 3.19, 3.33, 3.02, 2.78], "cash": [1.4212, 1.4496, 1.7395, 1.9328, 2.0237, 1.6782, 1.7769, 1.8, 1.8, 1.8], "stock": [0.2, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]}, "6005": {"name": "群益證", "EPS": [0.66, 0.53, 1.33, 0.61, 1.11, 1.64, 2.42, 0.39, 1.9, 2.25], "cash": [0.4579, 0.3458, 0.2, 0.4, 0.8, 1.1, 1.65, 0.39, 1.33, 1.5], "stock": [0.0, 0.0, 0.7, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]}, "6024": {"name": "群益期", "EPS": [3.54, 4.18, 4.68, 4.73, 3.4, 3.07, 2.33, 3.72, 4.8, 5.66], "cash": [2.1035, 1.9262, 2.5285, 3.2598, 1.8797, 2.87, 1.6, 2.9878, 3.4033, 2.83], "stock": [0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]}};
 
     let chart;
 
@@ -91,6 +85,9 @@
         const eps = d.EPS[i];
         return eps === 0 ? null : Math.round((total / eps) * 1000) / 10;
       });
+
+      const maxY = Math.max(...d.EPS.map((v, i) => v + d.cash[i] + d.stock[i])) * 1.2;
+      const maxY1 = Math.min(200, Math.ceil(Math.max(...payoutRatio.filter(p => p !== null)) / 10) * 10 + 10);
 
       if (chart) chart.destroy();
 
@@ -105,8 +102,12 @@
               backgroundColor: 'rgba(255, 206, 86, 0.6)',
               borderColor: 'rgba(255, 206, 86, 1)',
               borderWidth: 2,
-              stack: null,
-              yAxisID: 'y'
+              yAxisID: 'y',
+              datalabels: {
+                anchor: 'end',
+                align: 'start',
+                formatter: val => val?.toFixed(2)
+              }
             },
             {
               label: '現金股利',
@@ -115,7 +116,12 @@
               borderColor: 'rgba(54, 162, 235, 1)',
               borderWidth: 1,
               stack: 'dividend',
-              yAxisID: 'y'
+              yAxisID: 'y',
+              datalabels: {
+                anchor: 'end',
+                align: 'end',
+                formatter: val => val?.toFixed(2)
+              }
             },
             {
               label: '股票股利',
@@ -124,7 +130,12 @@
               borderColor: 'rgba(255, 99, 132, 1)',
               borderWidth: 1,
               stack: 'dividend',
-              yAxisID: 'y'
+              yAxisID: 'y',
+              datalabels: {
+                anchor: 'end',
+                align: 'end',
+                formatter: val => val?.toFixed(2)
+              }
             },
             {
               label: '配發率（%）',
@@ -137,7 +148,12 @@
               yAxisID: 'y1',
               tension: 0.3,
               pointRadius: 4,
-              pointHoverRadius: 6
+              pointHoverRadius: 6,
+              datalabels: {
+                align: 'top',
+                anchor: 'end',
+                formatter: val => val?.toFixed(1)
+              }
             }
           ]
         },
@@ -147,13 +163,15 @@
           plugins: {
             legend: {
               position: 'top',
-              labels: {
-                padding: 12,
-                font: { size: 16 }
-              }
+              labels: { font: { size: 16 } }
+            },
+            tooltip: { enabled: true },
+            datalabels: {
+              color: '#000',
+              font: { size: 14 }
             }
           },
-          layout: { padding: { top: 20 } },
+          layout: { padding: { top: 10 } },
           scales: {
             x: {
               stacked: true,
@@ -161,42 +179,25 @@
             },
             y: {
               stacked: true,
-              position: 'left',
               beginAtZero: true,
-              max: 2.5,
-              title: {
-                display: true,
-                text: '每股盈餘 / 股利（元）'
-              },
-              grid: { color: 'rgba(0,0,0,0.05)' }
+              suggestedMax: maxY,
+              position: 'left',
+              title: { display: true, text: '每股盈餘 / 股利（元）' }
             },
             y1: {
               position: 'right',
               beginAtZero: true,
-              max: 120,
-              grid: {
-                drawOnChartArea: false
-              },
-              title: {
-                display: true,
-                text: '配發率（%）'
-              }
+              max: maxY1,
+              grid: { drawOnChartArea: false },
+              title: { display: true, text: '配發率（%）' }
             }
           }
-        }
+        },
+        plugins: [ChartDataLabels]
       });
-
-      // 更新圖表後，傳送新高度給父頁面
-      setTimeout(postHeight, 500);
     }
 
-    function postHeight() {
-      const height = document.documentElement.scrollHeight;
-      window.parent.postMessage({ chartHeight: height }, '*');
-    }
-
-    // 初始載入
-    window.addEventListener('load', () => renderChart('sf'));
+    window.addEventListener('load', () => renderChart(Object.keys(dataMap)[0]));
     document.getElementById('companySelect').addEventListener('change', function () {
       renderChart(this.value);
     });
