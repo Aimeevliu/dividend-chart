@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
   <meta charset="UTF-8">
-  <title>歷年股利政策（自動適應容器）</title>
+  <title>金融股歷年股利政策（含配發率）</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     html, body {
@@ -10,95 +10,90 @@
       padding: 0;
       height: 100%;
       font-family: "Noto Sans TC", sans-serif;
-      background: transparent;
+      background: #f8f9fa;
     }
 
     #container {
-      width: 100%;
-      height: 100%;
-      padding: 20px;
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 30px 20px;
       box-sizing: border-box;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.06);
     }
 
-    h3 {
+    h2 {
       text-align: center;
-      margin-top: 0;
+      margin-bottom: 16px;
+      color: #333;
     }
 
-    #chart-buttons {
-      text-align: center;
-      margin-bottom: 20px;
-    }
-
-    button {
-      padding: 8px 16px;
-      margin: 0 5px;
+    #companySelect {
+      display: block;
+      margin: 0 auto 24px;
+      padding: 8px 12px;
       font-size: 16px;
-      cursor: pointer;
-      border: none;
-      border-radius: 4px;
-    }
-
-    .active {
-      background-color: #007bff;
-      color: white;
-    }
-
-    .inactive {
-      background-color: #eee;
-      color: black;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.04);
     }
 
     #myChart {
       width: 100% !important;
-      height: 100% !important;
+      height: 500px !important;
     }
 
     #data-source {
       text-align: right;
       font-size: 14px;
-      margin-top: 10px;
+      margin-top: 16px;
       color: #666;
     }
   </style>
 </head>
 <body>
   <div id="container">
-    <h1>金融股最新股利</h1>
+    <h2>金融股歷年股利政策</h2>
 
-    <div id="chart-buttons">
-      <button id="btn-sf" onclick="renderChart('sf')">永豐金</button>
-      <button id="btn-ysb" onclick="renderChart('ysb')">玉山金</button>
-    </div>
+    <!-- 🎯 中央下拉選單 -->
+    <select id="companySelect">
+      <option value="sf">永豐金</option>
+      <option value="ysb">玉山金</option>
+    </select>
 
     <canvas id="myChart"></canvas>
-    <div style="text-align:center; font-size: 14px; margin-top: 12px;">（單位：元）</div>
+    <div style="text-align:center; font-size: 14px; margin-top: 12px;">（左軸單位：元；右軸單位：%）</div>
     <div id="data-source">資料來源：公開資訊觀測站；劉家瑜製表</div>
   </div>
 
   <script>
+    const ctx = document.getElementById('myChart').getContext('2d');
     const labels = ['2015','2016','2017','2018','2019','2020','2021','2022','2023','2024'];
 
     const dataMap = {
       sf: {
-        title: '永豐金 歷年股利政策',
         EPS: [1.07, 0.78, 0.82, 0.84, 1.11, 1.09, 1.44, 1.4, 1.62, 1.75],
         cash: [0.366544, 0.306492, 0.470297, 0.598217, 0.658415, 0.658415, 0.759999, 0.585366, 0.75, 0.91],
         stock: [0.5, 0.35, 0.2, 0.0, 0.0, 0.0, 0.1, 0.2, 0.25, 0.34]
       },
       ysb: {
-        title: '玉山金 歷年股利政策',
         EPS: [1.63, 1.5, 1.49, 1.58, 1.73, 1.43, 1.54, 1.1, 1.41, 1.63],
         cash: [0.220333, 0.330629, 0.437947, 0.50758, 0.65403, 0.535153, 0.627404, 0.185667, 1.2, 1.2],
         stock: [1.0, 0.74084, 0.61262, 0.71101, 0.79694, 0.61112, 0.67392, 0.37877, 0.20033, 0.1]
       }
     };
 
-    const ctx = document.getElementById('myChart').getContext('2d');
     let chart;
 
     function renderChart(companyKey) {
       const d = dataMap[companyKey];
+      const totalDividend = d.cash.map((v, i) => v + d.stock[i]);
+      const payoutRatio = totalDividend.map((total, i) => {
+        const eps = d.EPS[i];
+        return eps === 0 ? null : Math.round((total / eps) * 1000) / 10;
+      });
+
       if (chart) chart.destroy();
 
       chart = new Chart(ctx, {
@@ -112,7 +107,8 @@
               backgroundColor: 'rgba(255, 206, 86, 0.6)',
               borderColor: 'rgba(255, 206, 86, 1)',
               borderWidth: 2,
-              stack: null
+              stack: null,
+              yAxisID: 'y'
             },
             {
               label: '現金股利',
@@ -120,7 +116,8 @@
               backgroundColor: 'rgba(54, 162, 235, 0.6)',
               borderColor: 'rgba(54, 162, 235, 1)',
               borderWidth: 1,
-              stack: 'dividend'
+              stack: 'dividend',
+              yAxisID: 'y'
             },
             {
               label: '股票股利',
@@ -128,7 +125,21 @@
               backgroundColor: 'rgba(255, 99, 132, 0.6)',
               borderColor: 'rgba(255, 99, 132, 1)',
               borderWidth: 1,
-              stack: 'dividend'
+              stack: 'dividend',
+              yAxisID: 'y'
+            },
+            {
+              label: '配發率（%）',
+              data: payoutRatio,
+              type: 'line',
+              borderColor: 'rgba(0, 123, 255, 1)',
+              backgroundColor: 'rgba(0, 123, 255, 0.1)',
+              borderWidth: 2,
+              fill: false,
+              yAxisID: 'y1',
+              tension: 0.3,
+              pointRadius: 4,
+              pointHoverRadius: 6
             }
           ]
         },
@@ -136,30 +147,45 @@
           responsive: true,
           maintainAspectRatio: false,
           plugins: {
-            legend: { position: 'top' },
-            title: {
-              display: false,
-              text: d.title
+            legend: {
+              position: 'top',
+              labels: {
+                padding: 16,
+                font: { size: 14 }
+              }
             }
           },
+          layout: { padding: { top: 20 } },
           scales: {
             x: { stacked: true },
             y: {
-              stacked: true,
+              position: 'left',
               beginAtZero: true,
-              max: 2.5
+              max: 2.5,
+              title: {
+                display: true,
+                text: '每股盈餘 / 股利（元）'
+              }
+            },
+            y1: {
+              position: 'right',
+              beginAtZero: true,
+              max: 120,
+              grid: { drawOnChartArea: false },
+              title: {
+                display: true,
+                text: '配發率（%）'
+              }
             }
           }
         }
       });
-
-      // 切換樣式
-      document.getElementById('btn-sf').className = (companyKey === 'sf') ? 'active' : 'inactive';
-      document.getElementById('btn-ysb').className = (companyKey === 'ysb') ? 'active' : 'inactive';
     }
 
-    // 初始化
     renderChart('sf');
+    document.getElementById('companySelect').addEventListener('change', function () {
+      renderChart(this.value);
+    });
   </script>
 </body>
 </html>
