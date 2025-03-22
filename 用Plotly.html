@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <title>歷年股利政策：玉山金 & 永豐金</title>
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+  <style>
+    body {
+      font-family: "Noto Sans TC", sans-serif;
+      margin: 40px;
+    }
+    h2 {
+      text-align: center;
+    }
+    #buttons {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    button {
+      font-size: 16px;
+      padding: 8px 16px;
+      margin: 0 10px;
+      cursor: pointer;
+      border: none;
+      background-color: #eee;
+      border-radius: 6px;
+    }
+    button.active {
+      background-color: #007bff;
+      color: white;
+    }
+    #data-source {
+      text-align: right;
+      font-size: 14px;
+      margin-top: 10px;
+      color: #666;
+    }
+  </style>
+</head>
+<body>
+  <h2>歷年股利政策</h2>
+  <div id="buttons">
+    <button id="esunBtn" class="active">玉山金</button>
+    <button id="sinopacBtn">永豐金</button>
+  </div>
+  <div id="plotlyChart" style="width:100%;max-width:1200px;height:600px;margin:auto;"></div>
+  <div style="text-align:center; font-size: 14px; margin-top: 12px;">（單位：元）</div>
+  <div id="data-source">資料來源: 公開資訊觀測站；劉家瑜製表</div>
+
+  <script>
+    const years = ['2015', '2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024'];
+
+    const dataSets = {
+      esun: {
+        name: '玉山金',
+        EPS: [1.63, 1.5, 1.49, 1.58, 1.73, 1.43, 1.54, 1.1, 1.41, 1.63],
+        cash: [0.220333, 0.330629, 0.437947, 0.50758, 0.65403, 0.535153, 0.627404, 0.185667, 1.2, 1.2],
+        stock: [1.0, 0.74084, 0.61262, 0.71101, 0.79694, 0.61112, 0.67392, 0.37877, 0.20033, 0.1]
+      },
+      sinopac: {
+        name: '永豐金',
+        EPS: [1.07, 0.78, 0.82, 0.84, 1.11, 1.09, 1.44, 1.4, 1.62, 1.75],
+        cash: [0.366544, 0.306492, 0.470297, 0.598217, 0.658415, 0.658415, 0.759999, 0.585366, 0.75, 0.91],
+        stock: [0.5, 0.35, 0.2, 0.0, 0.0, 0.0, 0.1, 0.2, 0.25, 0.34]
+      }
+    };
+
+    function plotData(companyKey) {
+      const company = dataSets[companyKey];
+
+      const traceEPS = {
+        x: years,
+        y: company.EPS,
+        name: 'EPS',
+        type: 'bar',
+        xaxis: 'x1',
+        yaxis: 'y1',
+        marker: { color: 'rgba(255, 206, 86, 0.8)' }
+      };
+
+      const traceCash = {
+        x: years,
+        y: company.cash,
+        name: '現金股利',
+        type: 'bar',
+        xaxis: 'x2',
+        yaxis: 'y2',
+        marker: { color: 'rgba(54, 162, 235, 0.7)' }
+      };
+
+      const traceStock = {
+        x: years,
+        y: company.stock,
+        name: '股票股利',
+        type: 'bar',
+        xaxis: 'x2',
+        yaxis: 'y2',
+        marker: { color: 'rgba(255, 99, 132, 0.7)' }
+      };
+
+      const layout = {
+        title: `${company.name} 歷年股利政策`,
+        grid: { rows: 1, columns: 2, pattern: 'independent' },
+        xaxis: { domain: [0, 0.45], title: '年度' },
+        yaxis: { title: 'EPS', range: [0, 2.5] },
+        xaxis2: { domain: [0.55, 1], title: '年度' },
+        yaxis2: { title: '股利（現金＋股票）', range: [0, 2.5] },
+        barmode: 'stack',  // 只會影響同組 x2/y2 中的現金與股票
+        legend: { orientation: 'h', y: -0.2 },
+        margin: { t: 60 }
+      };
+
+      Plotly.newPlot('plotlyChart', [traceEPS, traceCash, traceStock], layout);
+    }
+
+    // 初始載入玉山金
+    plotData('esun');
+
+    // 切換按鈕邏輯
+    document.getElementById('esunBtn').onclick = () => {
+      plotData('esun');
+      document.getElementById('esunBtn').classList.add('active');
+      document.getElementById('sinopacBtn').classList.remove('active');
+    };
+
+    document.getElementById('sinopacBtn').onclick = () => {
+      plotData('sinopac');
+      document.getElementById('sinopacBtn').classList.add('active');
+      document.getElementById('esunBtn').classList.remove('active');
+    };
+  </script>
+</body>
+</html>
