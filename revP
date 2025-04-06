@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>金控公司稅後損益：Bar + 折線圖</title>
+  <script src="https://cdn.plot.ly/plotly-2.26.0.min.js"></script>
+  <style>
+    body {
+      font-family: "Noto Sans TC", sans-serif;
+      margin: 2em;
+    }
+    #container {
+      display: flex;
+      gap: 2em;
+    }
+    #bar, #line {
+      width: 48%;
+      height: 600px;
+    }
+    #monthLabel {
+      font-size: 1.2em;
+      margin-bottom: 1em;
+    }
+  </style>
+</head>
+<body>
+  <h2>金控公司每月稅後損益</h2>
+  <div id="monthLabel">月份：<span id="selectedMonth">2025-02</span></div>
+  <div id="container">
+    <div id="bar"></div>
+    <div id="line"></div>
+  </div>
+
+  <script>
+    const monthData = {"2024-02-01": [83.1, 109.9, 45.39, 28.05, 34.69, 13.14, 25.56, 18.64, 22.63, 16.5, 15.94, 14.39, 1.88, 13.16], "2024-03-01": [80.1, 168.0, 75.75, 26.0, 38.33, 21.34, 38.48, 24.77, 23.43, 13.7, 20.77, 18.11, 2.21, 39.81], "2024-04-01": [130.3, 137.4, 51.07, 24.25, 26.3, 17.52, 30.53, 16.26, 21.08, 17.0, 18.55, 13.46, 1.05, 34.47], "2024-05-01": [160.2, 78.8, 51.24, 22.72, 28.03, 25.02, 25.15, 19.28, 23.14, 14.0, 20.18, 20.26, 1.31, 37.16], "2024-06-01": [216.3, 128.0, 60.56, 40.42, 34.74, 22.12, 28.58, 17.72, 22.91, 24.7, 17.08, 17.19, 3.49, 102.01], "2024-07-01": [267.4, 214.9, 108.41, 80.56, 41.91, 27.24, 48.05, 24.05, 28.65, 20.0, 27.9, 23.66, 2.32, 28.84], "2024-08-01": [55.3, 52.6, 51.67, 19.07, 23.29, 30.26, 22.12, 20.6, 23.85, 27.7, 22.61, 18.57, 1.07, -44.8], "2024-09-01": [78.6, 48.4, 54.34, 22.24, 24.04, 24.11, 24.17, 18.27, 18.3, 13.2, 15.86, 15.32, 1.41, 9.59], "2024-10-01": [91.0, 54.4, 47.4, 17.43, 17.91, 15.18, 32.41, 17.21, 18.0, 12.4, 17.49, 13.74, 1.55, 3.34], "2024-11-01": [103.6, 44.7, 49.38, 21.61, 9.49, 16.09, 37.3, 10.01, 15.08, 13.8, 15.92, 12.95, 1.65, -6.16], "2024-12-01": [105.1, -19.1, 37.02, 5.02, 27.05, 20.81, 17.64, 10.83, 12.43, 7.9, 19.3, 8.49, 1.59, 11.17], "2025-01-01": [152.1, 144.9, 68.27, 0.0, 32.17, 30.24, 26.06, 29.03, 25.45, 15.9, 19.77, 14.49, 1.55, -18.68], "2025-02-01": [148.0, 77.9, 49.11, 34.62, 30.23, 27.24, 25.11, 24.42, 24.05, 20.1, 16.98, 16.5, 1.68, -23.59]};
+    const companies = ["富邦金控", "國泰金控", "中信金控", "凱基金控", "兆豐金控", "玉山金控", "元大金控", "永豐金控", "第一金控", "台新金控", "華南金控", "合庫金控", "國票金控", "新光金控"];
+    const months = Object.keys(monthData);
+
+    const selectedMonth = "2025-02-01";
+    document.getElementById("selectedMonth").textContent = selectedMonth;
+
+    // 畫左邊 Bar Chart
+    const barTrace = {
+      x: monthData[selectedMonth],
+      y: companies,
+      orientation: 'h',
+      type: 'bar',
+      marker: {
+        color: monthData[selectedMonth].map(v => v > 0 ? '#5cb85c' : v < 0 ? '#d9534f' : '#bbb')
+      },
+      hovertemplate: '%{y}<br>稅後損益：%{x} 億元<extra></extra>'
+    };
+
+    Plotly.newPlot('bar', [barTrace], {
+      title: '2025年2月 稅後損益（億元）',
+      margin: {l: 100},
+    });
+
+    // 畫右邊折線圖（點選後變更）
+    const initLineTrace = {
+      x: months,
+      y: months.map(m => monthData[m][0]), // 預設第一家公司
+      mode: 'lines+markers',
+      name: companies[0],
+      marker: { color: '#337ab7' }
+    };
+
+    Plotly.newPlot('line', [initLineTrace], {
+      title: '富邦金控 各月稅後損益走勢',
+      xaxis: { title: '月份' },
+      yaxis: { title: '億元' }
+    });
+
+    // 點選左圖公司後，更新右圖
+    document.getElementById('bar').on('plotly_click', function(data) {
+      const idx = data.points[0].pointIndex;
+      const company = companies[idx];
+      const values = months.map(m => monthData[m][idx]);
+      const update = {
+        y: [values],
+        name: company,
+        marker: { color: '#f0ad4e' }
+      };
+      const layoutUpdate = { title: company + ' 各月稅後損益走勢' };
+      Plotly.update('line', update, layoutUpdate);
+    });
+  </script>
+</body>
+</html>
