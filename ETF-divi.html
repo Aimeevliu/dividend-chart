@@ -2,956 +2,422 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <title>ETF 最新收益分配公告</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ETF 最新收益分配公告 (Plotly.js)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
     <style>
-        body { font-family: Arial, sans-serif; background-color: #f9f9f9; color: #333; padding: 20px; text-align: center; }
-        h2 { font-size: 24px; font-weight: bold; margin-bottom: 15px; }
-        input { width: 50%; max-width: 400px; padding: 10px; margin-bottom: 20px; font-size: 16px; border: 1px solid #ccc; border-radius: 5px; text-align: center; }
-        table { width: 100%; border-collapse: collapse; table-layout: auto; }
-        th, td {   white-space: nowrap !important;}
-        th { background-color: #f4f4f4; padding: 12px; text-align: center; font-weight: bold; position: sticky; top: 0; z-index: 1; cursor: pointer; white-space: nowrap; }
-        td { padding: 12px; text-align: center; border-bottom: 1px solid #ddd; word-break: break-word; white-space: nowrap; }
-        tr:nth-child(even) { background-color: #f9f9f9; }
-        tr:hover { background-color: #f1f1f1; }
-        a { text-decoration: none; color: #007bff; font-size: 14px; }
-        a:hover { text-decoration: underline; }
+        body {
+            font-family: 'Inter', Arial, sans-serif; /* 使用 Inter 字體 */
+            background-color: #f7fafc; /* Tailwind gray-100 */
+            color: #2d3748; /* Tailwind gray-800 */
+            padding: 20px;
+        }
+        h2 {
+            text-align: center;
+            color: #2c5282; /* Tailwind blue-800 */
+            font-size: 1.875rem; /* Tailwind text-3xl */
+            margin-bottom: 1.5rem; /* Tailwind mb-6 */
+        }
+        #searchInput {
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+            margin-bottom: 20px;
+            padding: 10px;
+            width: 60%;
+            max-width: 500px;
+            font-size: 16px;
+            border: 1px solid #cbd5e0; /* Tailwind gray-300 */
+            border-radius: 0.375rem; /* Tailwind rounded-md */
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); /* Tailwind shadow-sm */
+        }
+        #dataTable {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: auto;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); /* Tailwind shadow-lg */
+            border-radius: 0.5rem; /* Tailwind rounded-lg */
+            overflow: hidden; /* For rounded corners on table */
+        }
+        th, td {
+            white-space: nowrap;
+            padding: 12px 15px;
+            text-align: center;
+            border-bottom: 1px solid #e2e8f0; /* Tailwind gray-200 */
+        }
+        th {
+            background-color: #edf2f7; /* Tailwind gray-100 */
+            font-weight: 600; /* Tailwind semibold */
+            color: #4a5568; /* Tailwind gray-700 */
+            cursor: pointer;
+            position: sticky;
+            top: 0;
+            z-index: 1;
+        }
+        tr:nth-child(even) {
+            background-color: #fdfdfe; /* Lighter than gray-50 for subtle difference */
+        }
+        tr:hover {
+            background-color: #e2e8f0; /* Tailwind gray-200 */
+        }
+        .etf-code {
+            color: #2b6cb0; /* Tailwind blue-600 */
+            font-weight: 500; /* Tailwind medium */
+            cursor: pointer;
+            text-decoration: underline;
+            text-decoration-color: #90cdf4; /* Tailwind blue-300 */
+            text-decoration-thickness: 1px;
+            text-underline-offset: 2px;
+        }
+        .etf-code:hover {
+            color: #2c5282; /* Tailwind blue-800 */
+            text-decoration-color: #4299e1; /* Tailwind blue-500 */
+        }
         .asc::after { content: " ⬆️"; }
         .desc::after { content: " ⬇️"; }
+        a {
+            color: #3182ce; /* Tailwind blue-600 */
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        /* Plotly Chart Container Styling */
+        #plotlyDividendChartContainer {
+            margin-top: 40px;
+            padding: 20px;
+            background-color: #ffffff; /* White background */
+            border-radius: 0.5rem; /* Tailwind rounded-lg */
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); /* Tailwind shadow-xl */
+        }
+        .chart-placeholder {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 400px; /* Same as chart height */
+            color: #718096; /* Tailwind gray-500 */
+            font-size: 1.125rem; /* Tailwind text-lg */
+            border: 2px dashed #cbd5e0; /* Tailwind gray-300 */
+            border-radius: 0.5rem; /* Tailwind rounded-lg */
+        }
+        .message-box {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #ef4444; /* Tailwind red-500 */
+            color: white;
+            padding: 10px 20px;
+            border-radius: 0.375rem; /* Tailwind rounded-md */
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            z-index: 1000;
+            display: none; /* Hidden by default */
+            font-size: 0.875rem; /* Tailwind text-sm */
+        }
     </style>
 </head>
 <body>
-    <h2>ETF 最新配息公告</h2>
-    <input type="text" id="searchInput" placeholder="🔍 搜尋代號、名稱或公告內容" onkeyup="filterTable()">
-    <table id="dataTable">
-        <thead>
-            <tr>
-                <th onclick="sortTable(0, this)">ETF代號</th>
-                <th>ETF名稱</th>
-                <th onclick="sortTable(2, this)">除息日</th>
-                <th onclick="sortTable(3, this)">股息發放日</th>
-                <th onclick="sortTable(4, this)">預估配息</th>
-                <th>公告連結</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td style='white-space: nowrap'>00932</td>
-                <td style='white-space: nowrap'>兆豐永續高息等權</td>
-                <td style='white-space: nowrap'>114年5月19日</td>
-                <td style='white-space: nowrap'>114年6月6日</td>
-                <td style='white-space: nowrap'>0.1</td>
-                <td><a href="https://mopsov.twse.com.tw/mops/web/ajax_t108sb19?step=2&firstin=1&TYPEK=all&SKIND=F&SEQ_NO=3&DATE1=20250505&COMP=A00001" target="_blank">點擊查看</a></td>
-            </tr>
-            <tr>
-                <td style='white-space: nowrap'>00690</td>
-                <td style='white-space: nowrap'>兆豐臺灣藍籌30</td>
-                <td style='white-space: nowrap'>114年5月19日</td>
-                <td style='white-space: nowrap'>114年6月6日</td>
-                <td style='white-space: nowrap'>0.31</td>
-                <td><a href="https://mopsov.twse.com.tw/mops/web/ajax_t108sb19?step=2&firstin=1&TYPEK=all&SKIND=F&SEQ_NO=2&DATE1=20250505&COMP=A00001" target="_blank">點擊查看</a></td>
-            </tr>
-            <tr>
-                <td style='white-space: nowrap'>00775B</td>
-                <td style='white-space: nowrap'>新光投等債15+</td>
-                <td style='white-space: nowrap'>114年5月21日</td>
-                <td style='white-space: nowrap'>114年6月18日</td>
-                <td style='white-space: nowrap'>0.38</td>
-                <td><a href="https://mopsov.twse.com.tw/mops/web/ajax_t108sb19?step=2&firstin=1&TYPEK=all&SKIND=F&SEQ_NO=1&DATE1=20250505&COMP=A00014" target="_blank">點擊查看</a></td>
-            </tr>
-            <tr>
-                <td style='white-space: nowrap'>00929</td>
-                <td style='white-space: nowrap'>復華台灣科技優息</td>
-                <td style='white-space: nowrap'>114年5月20日</td>
-                <td style='white-space: nowrap'>114年6月16日</td>
-                <td style='white-space: nowrap'>0.07</td>
-                <td><a href="https://mopsov.twse.com.tw/mops/web/ajax_t108sb19?step=2&firstin=1&TYPEK=all&SKIND=F&SEQ_NO=2&DATE1=20250505&COMP=A00022" target="_blank">點擊查看</a></td>
-            </tr>
-            <tr>
-                <td style='white-space: nowrap'>00731</td>
-                <td style='white-space: nowrap'>復華富時高息低波</td>
-                <td style='white-space: nowrap'>114年5月20日</td>
-                <td style='white-space: nowrap'>114年6月16日</td>
-                <td style='white-space: nowrap'>0.593</td>
-                <td><a href="https://mopsov.twse.com.tw/mops/web/ajax_t108sb19?step=2&firstin=1&TYPEK=all&SKIND=F&SEQ_NO=1&DATE1=20250505&COMP=A00022" target="_blank">點擊查看</a></td>
-            </tr>
-            <tr>
-                <td style='white-space: nowrap'>00945B</td>
-                <td style='white-space: nowrap'>凱基美國非投等債</td>
-                <td style='white-space: nowrap'>114年5月19日</td>
-                <td style='white-space: nowrap'>114年6月13日</td>
-                <td style='white-space: nowrap'>0.102</td>
-                <td><a href="https://mopsov.twse.com.tw/mops/web/ajax_t108sb19?step=2&firstin=1&TYPEK=all&SKIND=F&SEQ_NO=6&DATE1=20250502&COMP=A00041" target="_blank">點擊查看</a></td>
-            </tr>
-            <tr>
-                <td style='white-space: nowrap'>00964</td>
-                <td style='white-space: nowrap'>中信亞太高股息</td>
-                <td style='white-space: nowrap'>114年5月19日</td>
-                <td style='white-space: nowrap'>114年6月13日</td>
-                <td style='white-space: nowrap'>0.04</td>
-                <td><a href="https://mopsov.twse.com.tw/mops/web/ajax_t108sb19?step=2&firstin=1&TYPEK=all&SKIND=F&SEQ_NO=11&DATE1=20250502&COMP=A00026" target="_blank">點擊查看</a></td>
-            </tr>
-            <tr>
-                <td style='white-space: nowrap'>00963</td>
-                <td style='white-space: nowrap'>中信全球高股息</td>
-                <td style='white-space: nowrap'>114年5月19日</td>
-                <td style='white-space: nowrap'>114年6月13日</td>
-                <td style='white-space: nowrap'>0.055</td>
-                <td><a href="https://mopsov.twse.com.tw/mops/web/ajax_t108sb19?step=2&firstin=1&TYPEK=all&SKIND=F&SEQ_NO=10&DATE1=20250502&COMP=A00026" target="_blank">點擊查看</a></td>
-            </tr>
-            <tr>
-                <td style='white-space: nowrap'>00934</td>
-                <td style='white-space: nowrap'>中信成長高股息</td>
-                <td style='white-space: nowrap'>114年5月19日</td>
-                <td style='white-space: nowrap'>114年6月13日</td>
-                <td style='white-space: nowrap'>0.026</td>
-                <td><a href="https://mopsov.twse.com.tw/mops/web/ajax_t108sb19?step=2&firstin=1&TYPEK=all&SKIND=F&SEQ_NO=8&DATE1=20250502&COMP=A00026" target="_blank">點擊查看</a></td>
-            </tr>
-            <tr>
-                <td style='white-space: nowrap'>00894</td>
-                <td style='white-space: nowrap'>中信小資高價30</td>
-                <td style='white-space: nowrap'>114年5月19日</td>
-                <td style='white-space: nowrap'>114年6月13日</td>
-                <td style='white-space: nowrap'>0.4</td>
-                <td><a href="https://mopsov.twse.com.tw/mops/web/ajax_t108sb19?step=2&firstin=1&TYPEK=all&SKIND=F&SEQ_NO=7&DATE1=20250502&COMP=A00026" target="_blank">點擊查看</a></td>
-            </tr>
-            <tr>
-                <td style='white-space: nowrap'>00891</td>
-                <td style='white-space: nowrap'>中信關鍵半導體</td>
-                <td style='white-space: nowrap'>114年5月19日</td>
-                <td style='white-space: nowrap'>114年6月13日</td>
-                <td style='white-space: nowrap'>0.41</td>
-                <td><a href="https://mopsov.twse.com.tw/mops/web/ajax_t108sb19?step=2&firstin=1&TYPEK=all&SKIND=F&SEQ_NO=6&DATE1=20250502&COMP=A00026" target="_blank">點擊查看</a></td>
-            </tr>
-            <tr>
-                <td style='white-space: nowrap'>00936</td>
-                <td style='white-space: nowrap'>台新永續高息中小</td>
-                <td style='white-space: nowrap'>114年5月16日</td>
-                <td style='white-space: nowrap'>114年6月6日</td>
-                <td style='white-space: nowrap'>0.03</td>
-                <td><a href="https://mopsov.twse.com.tw/mops/web/ajax_t108sb19?step=2&firstin=1&TYPEK=all&SKIND=F&SEQ_NO=1&DATE1=20250502&COMP=A00047" target="_blank">點擊查看</a></td>
-            </tr>
-            <tr>
-                <td style='white-space: nowrap'>00946</td>
-                <td style='white-space: nowrap'>群益科技高息成長</td>
-                <td style='white-space: nowrap'>114年5月6日</td>
-                <td style='white-space: nowrap'>114年5月29日</td>
-                <td style='white-space: nowrap'>0.025</td>
-                <td><a href="https://mopsov.twse.com.tw/mops/web/ajax_t108sb19?step=2&firstin=1&TYPEK=all&SKIND=F&SEQ_NO=2&DATE1=20250502&COMP=A00016" target="_blank">點擊查看</a></td>
-            </tr>
-            <tr>
-                <td style='white-space: nowrap'>00953B</td>
-                <td style='white-space: nowrap'>群益優選非投等債</td>
-                <td style='white-space: nowrap'>114年5月6日</td>
-                <td style='white-space: nowrap'>114年5月29日</td>
-                <td style='white-space: nowrap'>0.07</td>
-                <td><a href="https://mopsov.twse.com.tw/mops/web/ajax_t108sb19?step=2&firstin=1&TYPEK=all&SKIND=F&SEQ_NO=1&DATE1=20250502&COMP=A00016" target="_blank">點擊查看</a></td>
-            </tr>
-            <tr>
-                <td style='white-space: nowrap'>00730</td>
-                <td style='white-space: nowrap'>富邦臺灣優質高息</td>
-                <td style='white-space: nowrap'>114年5月19日</td>
-                <td style='white-space: nowrap'>114年6月13日</td>
-                <td style='white-space: nowrap'>0.11</td>
-                <td><a href="https://mopsov.twse.com.tw/mops/web/ajax_t108sb19?step=2&firstin=1&TYPEK=all&SKIND=F&SEQ_NO=6&DATE1=20250502&COMP=A00010" target="_blank">點擊查看</a></td>
-            </tr>
-            <tr>
-                <td style='white-space: nowrap'>00900</td>
-                <td style='white-space: nowrap'>富邦特選高股息30</td>
-                <td style='white-space: nowrap'>114年5月19日</td>
-                <td style='white-space: nowrap'>114年6月13日</td>
-                <td style='white-space: nowrap'>0.1</td>
-                <td><a href="https://mopsov.twse.com.tw/mops/web/ajax_t108sb19?step=2&firstin=1&TYPEK=all&SKIND=F&SEQ_NO=5&DATE1=20250502&COMP=A00010" target="_blank">點擊查看</a></td>
-            </tr>
-            <tr>
-                <td style='white-space: nowrap'>00930</td>
-                <td style='white-space: nowrap'>永豐ESG低碳高息</td>
-                <td style='white-space: nowrap'>114年5月27日</td>
-                <td style='white-space: nowrap'>114年6月20日</td>
-                <td style='white-space: nowrap'>0.07</td>
-                <td><a href="https://mopsov.twse.com.tw/mops/web/ajax_t108sb19?step=2&firstin=1&TYPEK=all&SKIND=F&SEQ_NO=1&DATE1=20250502&COMP=A00025" target="_blank">點擊查看</a></td>
-            </tr>
-            <tr>
-                <td style='white-space: nowrap'>00771</td>
-                <td style='white-space: nowrap'>元大US高息特別股</td>
-                <td style='white-space: nowrap'>114年5月22日</td>
-                <td style='white-space: nowrap'>114年6月12日</td>
-                <td style='white-space: nowrap'>0.22</td>
-                <td><a href="https://mopsov.twse.com.tw/mops/web/ajax_t108sb19?step=2&firstin=1&TYPEK=all&SKIND=F&SEQ_NO=3&DATE1=20250502&COMP=A00005" target="_blank">點擊查看</a></td>
-            </tr>
-            <tr>
-                <td style='white-space: nowrap'>00878</td>
-                <td style='white-space: nowrap'>國泰永續高股息</td>
-                <td style='white-space: nowrap'>114年5月19日</td>
-                <td style='white-space: nowrap'>114年6月13日</td>
-                <td style='white-space: nowrap'>0.47</td>
-                <td><a href="https://mopsov.twse.com.tw/mops/web/ajax_t108sb19?step=2&firstin=1&TYPEK=all&SKIND=F&SEQ_NO=1&DATE1=20250430&COMP=A00037" target="_blank">點擊查看</a></td>
-            </tr>
-            <tr>
-                <td style='white-space: nowrap'>00944</td>
-                <td style='white-space: nowrap'>野村趨勢動能高息</td>
-                <td style='white-space: nowrap'>114年5月19日</td>
-                <td style='white-space: nowrap'>114年6月13日</td>
-                <td style='white-space: nowrap'>0.058</td>
-                <td><a href="https://mopsov.twse.com.tw/mops/web/ajax_t108sb19?step=2&firstin=1&TYPEK=all&SKIND=F&SEQ_NO=1&DATE1=20250430&COMP=A00032" target="_blank">點擊查看</a></td>
-            </tr>
-            <tr>
-                <td style='white-space: nowrap'>00850</td>
-                <td style='white-space: nowrap'>元大臺灣ESG永續</td>
-                <td style='white-space: nowrap'>114年5月22日</td>
-                <td style='white-space: nowrap'>114年6月12日</td>
-                <td style='white-space: nowrap'>0.6</td>
-                <td><a href="https://mopsov.twse.com.tw/mops/web/ajax_t108sb19?step=2&firstin=1&TYPEK=all&SKIND=F&SEQ_NO=1&DATE1=20250430&COMP=A00005" target="_blank">點擊查看</a></td>
-            </tr>
-            <tr>
-                <td style='white-space: nowrap'>00939</td>
-                <td style='white-space: nowrap'>統一台灣高息動能</td>
-                <td style='white-space: nowrap'>114年5月2日</td>
-                <td style='white-space: nowrap'>114年5月26日</td>
-                <td style='white-space: nowrap'>0.05</td>
-                <td><a href="https://mopsov.twse.com.tw/mops/web/ajax_t108sb19?step=2&firstin=1&TYPEK=all&SKIND=F&SEQ_NO=1&DATE1=20250429&COMP=A00009" target="_blank">點擊查看</a></td>
-            </tr>
-            <tr>
-                <td style='white-space: nowrap'>00940</td>
-                <td style='white-space: nowrap'>元大台灣價值高息</td>
-                <td style='white-space: nowrap'>114年5月8日</td>
-                <td style='white-space: nowrap'>114年6月2日</td>
-                <td style='white-space: nowrap'>0.03</td>
-                <td><a href="https://mopsov.twse.com.tw/mops/web/ajax_t108sb19?step=2&firstin=1&TYPEK=all&SKIND=F&SEQ_NO=1&DATE1=20250422&COMP=A00005" target="_blank">點擊查看</a></td>
-            </tr>
-            <tr>
-                <td style='white-space: nowrap'>00907</td>
-                <td style='white-space: nowrap'>永豐優息存股</td>
-                <td style='white-space: nowrap'>114年4月23日</td>
-                <td style='white-space: nowrap'>114年5月20日</td>
-                <td style='white-space: nowrap'>0.095</td>
-                <td><a href="https://mopsov.twse.com.tw/mops/web/ajax_t108sb19?step=2&firstin=1&TYPEK=all&SKIND=F&SEQ_NO=2&DATE1=20250421&COMP=A00025" target="_blank">點擊查看</a></td>
-            </tr>
-            <tr>
-                <td style='white-space: nowrap'>00056</td>
-                <td style='white-space: nowrap'>元大高股息</td>
-                <td style='white-space: nowrap'>114年4月23日</td>
-                <td style='white-space: nowrap'>114年5月14日</td>
-                <td style='white-space: nowrap'>1.07</td>
-                <td><a href="https://mopsov.twse.com.tw/mops/web/ajax_t108sb19?step=2&firstin=1&TYPEK=all&SKIND=F&SEQ_NO=2&DATE1=20250421&COMP=A00005" target="_blank">點擊查看</a></td>
-            </tr>
-            <tr>
-                <td style='white-space: nowrap'>00904</td>
-                <td style='white-space: nowrap'>新光臺灣半導體30</td>
-                <td style='white-space: nowrap'>114年4月22日</td>
-                <td style='white-space: nowrap'>114年5月20日</td>
-                <td style='white-space: nowrap'>0.15</td>
-                <td><a href="https://mopsov.twse.com.tw/mops/web/ajax_t108sb19?step=2&firstin=1&TYPEK=all&SKIND=F&SEQ_NO=1&DATE1=20250418&COMP=A00014" target="_blank">點擊查看</a></td>
-            </tr>
-            <tr>
-                <td style='white-space: nowrap'>00953B</td>
-                <td style='white-space: nowrap'>群益優選非投等債</td>
-                <td style='white-space: nowrap'>114年5月6日</td>
-                <td style='white-space: nowrap'>114年5月29日</td>
-                <td style='white-space: nowrap'>0.07</td>
-                <td><a href="https://mopsov.twse.com.tw/mops/web/ajax_t108sb19?step=2&firstin=1&TYPEK=all&SKIND=F&SEQ_NO=1&DATE1=20250418&COMP=A00016" target="_blank">點擊查看</a></td>
-            </tr>
-            <tr>
-                <td style='white-space: nowrap'>00929</td>
-                <td style='white-space: nowrap'>復華台灣科技優息</td>
-                <td style='white-space: nowrap'>114年4月22日</td>
-                <td style='white-space: nowrap'>114年5月19日</td>
-                <td style='white-space: nowrap'>0.05</td>
-                <td><a href="https://mopsov.twse.com.tw/mops/web/ajax_t108sb19?step=2&firstin=1&TYPEK=all&SKIND=F&SEQ_NO=1&DATE1=20250418&COMP=A00022" target="_blank">點擊查看</a></td>
-            </tr>
-            <tr>
-                <td style='white-space: nowrap'>00946</td>
-                <td style='white-space: nowrap'>群益科技高息成長</td>
-                <td style='white-space: nowrap'>114年5月6日</td>
-                <td style='white-space: nowrap'>114年5月29日</td>
-                <td style='white-space: nowrap'>0.025</td>
-                <td><a href="https://mopsov.twse.com.tw/mops/web/ajax_t108sb19?step=2&firstin=1&TYPEK=all&SKIND=F&SEQ_NO=1&DATE1=20250417&COMP=A00016" target="_blank">點擊查看</a></td>
-            </tr>
-            <tr>
-                <td style='white-space: nowrap'>00945B</td>
-                <td style='white-space: nowrap'>凱基美國非投等債</td>
-                <td style='white-space: nowrap'>114年4月21日</td>
-                <td style='white-space: nowrap'>114年5月15日</td>
-                <td style='white-space: nowrap'>0.102</td>
-                <td><a href="https://mopsov.twse.com.tw/mops/web/ajax_t108sb19?step=2&firstin=1&TYPEK=all&SKIND=F&SEQ_NO=1&DATE1=20250417&COMP=A00041" target="_blank">點擊查看</a></td>
-            </tr>
-            <tr>
-                <td style='white-space: nowrap'>00927</td>
-                <td style='white-space: nowrap'>群益半導體收益</td>
-                <td style='white-space: nowrap'>114年4月18日</td>
-                <td style='white-space: nowrap'>114年5月15日</td>
-                <td style='white-space: nowrap'>0.37</td>
-                <td><a href="https://mopsov.twse.com.tw/mops/web/ajax_t108sb19?step=2&firstin=1&TYPEK=all&SKIND=F&SEQ_NO=6&DATE1=20250416&COMP=A00016" target="_blank">點擊查看</a></td>
-            </tr>
-            <tr>
-                <td style='white-space: nowrap'>00964</td>
-                <td style='white-space: nowrap'>中信亞太高股息</td>
-                <td style='white-space: nowrap'>114年4月18日</td>
-                <td style='white-space: nowrap'>114年5月15日</td>
-                <td style='white-space: nowrap'>0.04</td>
-                <td><a href="https://mopsov.twse.com.tw/mops/web/ajax_t108sb19?step=2&firstin=1&TYPEK=all&SKIND=F&SEQ_NO=12&DATE1=20250416&COMP=A00026" target="_blank">點擊查看</a></td>
-            </tr>
-            <tr>
-                <td style='white-space: nowrap'>00963</td>
-                <td style='white-space: nowrap'>中信全球高股息</td>
-                <td style='white-space: nowrap'>114年4月18日</td>
-                <td style='white-space: nowrap'>114年5月15日</td>
-                <td style='white-space: nowrap'>0.055</td>
-                <td><a href="https://mopsov.twse.com.tw/mops/web/ajax_t108sb19?step=2&firstin=1&TYPEK=all&SKIND=F&SEQ_NO=11&DATE1=20250416&COMP=A00026" target="_blank">點擊查看</a></td>
-            </tr>
-            <tr>
-                <td style='white-space: nowrap'>00956</td>
-                <td style='white-space: nowrap'>中信日經高股息</td>
-                <td style='white-space: nowrap'>114年4月18日</td>
-                <td style='white-space: nowrap'>114年5月15日</td>
-                <td style='white-space: nowrap'>0.11</td>
-                <td><a href="https://mopsov.twse.com.tw/mops/web/ajax_t108sb19?step=2&firstin=1&TYPEK=all&SKIND=F&SEQ_NO=10&DATE1=20250416&COMP=A00026" target="_blank">點擊查看</a></td>
-            </tr>
-            <tr>
-                <td style='white-space: nowrap'>00714</td>
-                <td style='white-space: nowrap'>群益道瓊美國地產</td>
-                <td style='white-space: nowrap'>114年4月21日</td>
-                <td style='white-space: nowrap'>114年5月16日</td>
-                <td style='white-space: nowrap'>0.123</td>
-                <td><a href="https://mopsov.twse.com.tw/mops/web/ajax_t108sb19?step=2&firstin=1&TYPEK=all&SKIND=F&SEQ_NO=3&DATE1=20250416&COMP=A00016" target="_blank">點擊查看</a></td>
-            </tr>
-            <tr>
-                <td style='white-space: nowrap'>00934</td>
-                <td style='white-space: nowrap'>中信成長高股息</td>
-                <td style='white-space: nowrap'>114年4月18日</td>
-                <td style='white-space: nowrap'>114年5月15日</td>
-                <td style='white-space: nowrap'>0.026</td>
-                <td><a href="https://mopsov.twse.com.tw/mops/web/ajax_t108sb19?step=2&firstin=1&TYPEK=all&SKIND=F&SEQ_NO=8&DATE1=20250416&COMP=A00026" target="_blank">點擊查看</a></td>
-            </tr>
-            <tr>
-                <td style='white-space: nowrap'>00912</td>
-                <td style='white-space: nowrap'>中信臺灣智慧50</td>
-                <td style='white-space: nowrap'>114年4月18日</td>
-                <td style='white-space: nowrap'>114年5月15日</td>
-                <td style='white-space: nowrap'>0.2</td>
-                <td><a href="https://mopsov.twse.com.tw/mops/web/ajax_t108sb19?step=2&firstin=1&TYPEK=all&SKIND=F&SEQ_NO=7&DATE1=20250416&COMP=A00026" target="_blank">點擊查看</a></td>
-            </tr>
-            <tr>
-                <td style='white-space: nowrap'>00905</td>
-                <td style='white-space: nowrap'>FT臺灣Smart</td>
-                <td style='white-space: nowrap'>114年4月18日</td>
-                <td style='white-space: nowrap'>114年5月15日</td>
-                <td style='white-space: nowrap'>0.0</td>
-                <td><a href="https://mopsov.twse.com.tw/mops/web/ajax_t108sb19?step=2&firstin=1&TYPEK=all&SKIND=F&SEQ_NO=1&DATE1=20250416&COMP=A00045" target="_blank">點擊查看</a></td>
-            </tr>
-            <tr>
-                <td style='white-space: nowrap'>00733</td>
-                <td style='white-space: nowrap'>富邦臺灣中小</td>
-                <td style='white-space: nowrap'>114年4月23日</td>
-                <td style='white-space: nowrap'>114年5月19日</td>
-                <td style='white-space: nowrap'>0.073</td>
-                <td><a href="https://mopsov.twse.com.tw/mops/web/ajax_t108sb19?step=2&firstin=1&TYPEK=all&SKIND=F&SEQ_NO=11&DATE1=20250416&COMP=A00010" target="_blank">點擊查看</a></td>
-            </tr>
-            <tr>
-                <td style='white-space: nowrap'>00908</td>
-                <td style='white-space: nowrap'>富邦入息REITs+</td>
-                <td style='white-space: nowrap'>114年4月23日</td>
-                <td style='white-space: nowrap'>114年5月19日</td>
-                <td style='white-space: nowrap'>0.148</td>
-                <td><a href="https://mopsov.twse.com.tw/mops/web/ajax_t108sb19?step=2&firstin=1&TYPEK=all&SKIND=F&SEQ_NO=7&DATE1=20250416&COMP=A00010" target="_blank">點擊查看</a></td>
-            </tr>
-            <tr>
-                <td style='white-space: nowrap'>00052</td>
-                <td style='white-space: nowrap'>富邦科技</td>
-                <td style='white-space: nowrap'>114年4月23日</td>
-                <td style='white-space: nowrap'>114年5月19日</td>
-                <td style='white-space: nowrap'>3.23</td>
-                <td><a href="https://mopsov.twse.com.tw/mops/web/ajax_t108sb19?step=2&firstin=1&TYPEK=all&SKIND=F&SEQ_NO=6&DATE1=20250416&COMP=A00010" target="_blank">點擊查看</a></td>
-            </tr>
-            <tr>
-                <td style='white-space: nowrap'>00730</td>
-                <td style='white-space: nowrap'>富邦臺灣優質高息</td>
-                <td style='white-space: nowrap'>114年4月23日</td>
-                <td style='white-space: nowrap'>114年5月19日</td>
-                <td style='white-space: nowrap'>0.1</td>
-                <td><a href="https://mopsov.twse.com.tw/mops/web/ajax_t108sb19?step=2&firstin=1&TYPEK=all&SKIND=F&SEQ_NO=4&DATE1=20250416&COMP=A00010" target="_blank">點擊查看</a></td>
-            </tr>
-            <tr>
-                <td style='white-space: nowrap'>00717</td>
-                <td style='white-space: nowrap'>富邦美國特別股</td>
-                <td style='white-space: nowrap'>114年4月23日</td>
-                <td style='white-space: nowrap'>114年5月19日</td>
-                <td style='white-space: nowrap'>0.173</td>
-                <td><a href="https://mopsov.twse.com.tw/mops/web/ajax_t108sb19?step=2&firstin=1&TYPEK=all&SKIND=F&SEQ_NO=3&DATE1=20250416&COMP=A00010" target="_blank">點擊查看</a></td>
-            </tr>
-            <tr>
-                <td style='white-space: nowrap'>00900</td>
-                <td style='white-space: nowrap'>富邦特選高股息30</td>
-                <td style='white-space: nowrap'>114年4月23日</td>
-                <td style='white-space: nowrap'>114年5月19日</td>
-                <td style='white-space: nowrap'>0.1</td>
-                <td><a href="https://mopsov.twse.com.tw/mops/web/ajax_t108sb19?step=2&firstin=1&TYPEK=all&SKIND=F&SEQ_NO=1&DATE1=20250416&COMP=A00010" target="_blank">點擊查看</a></td>
-            </tr>
-            <tr>
-                <td style='white-space: nowrap'>00960</td>
-                <td style='white-space: nowrap'>野村全球航運龍頭</td>
-                <td style='white-space: nowrap'>114年4月18日</td>
-                <td style='white-space: nowrap'>114年5月16日</td>
-                <td style='white-space: nowrap'>0.18</td>
-                <td><a href="https://mopsov.twse.com.tw/mops/web/ajax_t108sb19?step=2&firstin=1&TYPEK=all&SKIND=F&SEQ_NO=2&DATE1=20250416&COMP=A00032" target="_blank">點擊查看</a></td>
-            </tr>
-            <tr>
-                <td style='white-space: nowrap'>00944</td>
-                <td style='white-space: nowrap'>野村趨勢動能高息</td>
-                <td style='white-space: nowrap'>114年4月18日</td>
-                <td style='white-space: nowrap'>114年5月16日</td>
-                <td style='white-space: nowrap'>0.058</td>
-                <td><a href="https://mopsov.twse.com.tw/mops/web/ajax_t108sb19?step=2&firstin=1&TYPEK=all&SKIND=F&SEQ_NO=1&DATE1=20250416&COMP=A00032" target="_blank">點擊查看</a></td>
-            </tr>
-            <tr>
-                <td style='white-space: nowrap'>00939</td>
-                <td style='white-space: nowrap'>統一台灣高息動能</td>
-                <td style='white-space: nowrap'>114年5月2日</td>
-                <td style='white-space: nowrap'>114年5月26日</td>
-                <td style='white-space: nowrap'>0.05</td>
-                <td><a href="https://mopsov.twse.com.tw/mops/web/ajax_t108sb19?step=2&firstin=1&TYPEK=all&SKIND=F&SEQ_NO=1&DATE1=20250416&COMP=A00009" target="_blank">點擊查看</a></td>
-            </tr>
-            <tr>
-                <td style='white-space: nowrap'>00947</td>
-                <td style='white-space: nowrap'>台新臺灣IC設計</td>
-                <td style='white-space: nowrap'>114年4月17日</td>
-                <td style='white-space: nowrap'>114年5月8日</td>
-                <td style='white-space: nowrap'>0.08</td>
-                <td><a href="https://mopsov.twse.com.tw/mops/web/ajax_t108sb19?step=2&firstin=1&TYPEK=all&SKIND=F&SEQ_NO=2&DATE1=20250415&COMP=A00047" target="_blank">點擊查看</a></td>
-            </tr>
-            <tr>
-                <td style='white-space: nowrap'>00936</td>
-                <td style='white-space: nowrap'>台新永續高息中小</td>
-                <td style='white-space: nowrap'>114年4月17日</td>
-                <td style='white-space: nowrap'>114年5月8日</td>
-                <td style='white-space: nowrap'>0.03</td>
-                <td><a href="https://mopsov.twse.com.tw/mops/web/ajax_t108sb19?step=2&firstin=1&TYPEK=all&SKIND=F&SEQ_NO=1&DATE1=20250415&COMP=A00047" target="_blank">點擊查看</a></td>
-            </tr>
-            <tr>
-                <td style='white-space: nowrap'>00940</td>
-                <td style='white-space: nowrap'>元大台灣價值高息</td>
-                <td style='white-space: nowrap'>114年4月10日</td>
-                <td style='white-space: nowrap'>114年5月2日</td>
-                <td style='white-space: nowrap'>0.03</td>
-                <td><a href="https://mopsov.twse.com.tw/mops/web/ajax_t108sb19?step=2&firstin=1&TYPEK=all&SKIND=F&SEQ_NO=1&DATE1=20250408&COMP=A00005" target="_blank">點擊查看</a></td>
-            </tr>
-            <tr>
-                <td style='white-space: nowrap'>00934</td>
-                <td style='white-space: nowrap'>中信成長高股息</td>
-                <td style='white-space: nowrap'>114年4月18日</td>
-                <td style='white-space: nowrap'>114年5月15日</td>
-                <td style='white-space: nowrap'>0.026</td>
-                <td><a href="https://mopsov.twse.com.tw/mops/web/ajax_t108sb19?step=2&firstin=1&TYPEK=all&SKIND=F&SEQ_NO=1&DATE1=20250402&COMP=A00026" target="_blank">點擊查看</a></td>
-            </tr>
-            <tr>
-                <td style='white-space: nowrap'>00929</td>
-                <td style='white-space: nowrap'>復華台灣科技優息</td>
-                <td style='white-space: nowrap'>114年4月22日</td>
-                <td style='white-space: nowrap'>114年5月19日</td>
-                <td style='white-space: nowrap'>0.05</td>
-                <td><a href="https://mopsov.twse.com.tw/mops/web/ajax_t108sb19?step=2&firstin=1&TYPEK=all&SKIND=F&SEQ_NO=1&DATE1=20250402&COMP=A00022" target="_blank">點擊查看</a></td>
-            </tr>
-            <tr>
-                <td style='white-space: nowrap'>00964</td>
-                <td style='white-space: nowrap'>中信亞太高股息</td>
-                <td style='white-space: nowrap'>114年4月18日</td>
-                <td style='white-space: nowrap'>114年5月15日</td>
-                <td style='white-space: nowrap'>0.04</td>
-                <td><a href="https://mopsov.twse.com.tw/mops/web/ajax_t108sb19?step=2&firstin=1&TYPEK=all&SKIND=F&SEQ_NO=17&DATE1=20250401&COMP=A00026" target="_blank">點擊查看</a></td>
-            </tr>
-            <tr>
-                <td style='white-space: nowrap'>00963</td>
-                <td style='white-space: nowrap'>中信全球高股息</td>
-                <td style='white-space: nowrap'>114年4月18日</td>
-                <td style='white-space: nowrap'>114年5月15日</td>
-                <td style='white-space: nowrap'>0.055</td>
-                <td><a href="https://mopsov.twse.com.tw/mops/web/ajax_t108sb19?step=2&firstin=1&TYPEK=all&SKIND=F&SEQ_NO=16&DATE1=20250401&COMP=A00026" target="_blank">點擊查看</a></td>
-            </tr>
-            <tr>
-                <td style='white-space: nowrap'>00956</td>
-                <td style='white-space: nowrap'>中信日經高股息</td>
-                <td style='white-space: nowrap'>114年4月18日</td>
-                <td style='white-space: nowrap'>114年5月15日</td>
-                <td style='white-space: nowrap'>0.11</td>
-                <td><a href="https://mopsov.twse.com.tw/mops/web/ajax_t108sb19?step=2&firstin=1&TYPEK=all&SKIND=F&SEQ_NO=15&DATE1=20250401&COMP=A00026" target="_blank">點擊查看</a></td>
-            </tr>
-            <tr>
-                <td style='white-space: nowrap'>00934</td>
-                <td style='white-space: nowrap'>中信成長高股息</td>
-                <td style='white-space: nowrap'>114年4月18日</td>
-                <td style='white-space: nowrap'>114年5月15日</td>
-                <td style='white-space: nowrap'>0.0</td>
-                <td><a href="https://mopsov.twse.com.tw/mops/web/ajax_t108sb19?step=2&firstin=1&TYPEK=all&SKIND=F&SEQ_NO=14&DATE1=20250401&COMP=A00026" target="_blank">點擊查看</a></td>
-            </tr>
-            <tr>
-                <td style='white-space: nowrap'>00912</td>
-                <td style='white-space: nowrap'>中信臺灣智慧50</td>
-                <td style='white-space: nowrap'>114年4月18日</td>
-                <td style='white-space: nowrap'>114年5月15日</td>
-                <td style='white-space: nowrap'>0.2</td>
-                <td><a href="https://mopsov.twse.com.tw/mops/web/ajax_t108sb19?step=2&firstin=1&TYPEK=all&SKIND=F&SEQ_NO=13&DATE1=20250401&COMP=A00026" target="_blank">點擊查看</a></td>
-            </tr>
-            <tr>
-                <td style='white-space: nowrap'>00905</td>
-                <td style='white-space: nowrap'>FT臺灣Smart</td>
-                <td style='white-space: nowrap'>114年4月18日</td>
-                <td style='white-space: nowrap'>114年5月15日</td>
-                <td style='white-space: nowrap'>0.05</td>
-                <td><a href="https://mopsov.twse.com.tw/mops/web/ajax_t108sb19?step=2&firstin=1&TYPEK=all&SKIND=F&SEQ_NO=1&DATE1=20250401&COMP=A00045" target="_blank">點擊查看</a></td>
-            </tr>
-            <tr>
-                <td style='white-space: nowrap'>00907</td>
-                <td style='white-space: nowrap'>永豐優息存股</td>
-                <td style='white-space: nowrap'>114年4月23日</td>
-                <td style='white-space: nowrap'>114年5月20日</td>
-                <td style='white-space: nowrap'>0.13</td>
-                <td><a href="https://mopsov.twse.com.tw/mops/web/ajax_t108sb19?step=2&firstin=1&TYPEK=all&SKIND=F&SEQ_NO=2&DATE1=20250401&COMP=A00025" target="_blank">點擊查看</a></td>
-            </tr>
-            <tr>
-                <td style='white-space: nowrap'>00964</td>
-                <td style='white-space: nowrap'>中信亞太高股息</td>
-                <td style='white-space: nowrap'>114年4月18日</td>
-                <td style='white-space: nowrap'>114年5月15日</td>
-                <td style='white-space: nowrap'>0.04</td>
-                <td><a href="https://mopsov.twse.com.tw/mops/web/ajax_t108sb19?step=2&firstin=1&TYPEK=all&SKIND=F&SEQ_NO=12&DATE1=20250401&COMP=A00026" target="_blank">點擊查看</a></td>
-            </tr>
-            <tr>
-                <td style='white-space: nowrap'>00963</td>
-                <td style='white-space: nowrap'>中信全球高股息</td>
-                <td style='white-space: nowrap'>114年4月18日</td>
-                <td style='white-space: nowrap'>114年5月15日</td>
-                <td style='white-space: nowrap'>0.055</td>
-                <td><a href="https://mopsov.twse.com.tw/mops/web/ajax_t108sb19?step=2&firstin=1&TYPEK=all&SKIND=F&SEQ_NO=11&DATE1=20250401&COMP=A00026" target="_blank">點擊查看</a></td>
-            </tr>
-            <tr>
-                <td style='white-space: nowrap'>00956</td>
-                <td style='white-space: nowrap'>中信日經高股息</td>
-                <td style='white-space: nowrap'>114年4月18日</td>
-                <td style='white-space: nowrap'>114年5月15日</td>
-                <td style='white-space: nowrap'>0.11</td>
-                <td><a href="https://mopsov.twse.com.tw/mops/web/ajax_t108sb19?step=2&firstin=1&TYPEK=all&SKIND=F&SEQ_NO=10&DATE1=20250401&COMP=A00026" target="_blank">點擊查看</a></td>
-            </tr>
-            <tr>
-                <td style='white-space: nowrap'>00945B</td>
-                <td style='white-space: nowrap'>凱基美國非投等債</td>
-                <td style='white-space: nowrap'>114年4月21日</td>
-                <td style='white-space: nowrap'>114年5月15日</td>
-                <td style='white-space: nowrap'>0.102</td>
-                <td><a href="https://mopsov.twse.com.tw/mops/web/ajax_t108sb19?step=2&firstin=1&TYPEK=all&SKIND=F&SEQ_NO=8&DATE1=20250401&COMP=A00041" target="_blank">點擊查看</a></td>
-            </tr>
-            <tr>
-                <td style='white-space: nowrap'>00934</td>
-                <td style='white-space: nowrap'>中信成長高股息</td>
-                <td style='white-space: nowrap'>114年4月18日</td>
-                <td style='white-space: nowrap'>114年5月15日</td>
-                <td style='white-space: nowrap'>0.026</td>
-                <td><a href="https://mopsov.twse.com.tw/mops/web/ajax_t108sb19?step=2&firstin=1&TYPEK=all&SKIND=F&SEQ_NO=9&DATE1=20250401&COMP=A00026" target="_blank">點擊查看</a></td>
-            </tr>
-            <tr>
-                <td style='white-space: nowrap'>00912</td>
-                <td style='white-space: nowrap'>中信臺灣智慧50</td>
-                <td style='white-space: nowrap'>114年4月18日</td>
-                <td style='white-space: nowrap'>114年5月15日</td>
-                <td style='white-space: nowrap'>0.2</td>
-                <td><a href="https://mopsov.twse.com.tw/mops/web/ajax_t108sb19?step=2&firstin=1&TYPEK=all&SKIND=F&SEQ_NO=7&DATE1=20250401&COMP=A00026" target="_blank">點擊查看</a></td>
-            </tr>
-            <tr>
-                <td style='white-space: nowrap'>00947</td>
-                <td style='white-space: nowrap'>台新臺灣IC設計</td>
-                <td style='white-space: nowrap'>114年4月17日</td>
-                <td style='white-space: nowrap'>114年5月8日</td>
-                <td style='white-space: nowrap'>0.08</td>
-                <td><a href="https://mopsov.twse.com.tw/mops/web/ajax_t108sb19?step=2&firstin=1&TYPEK=all&SKIND=F&SEQ_NO=4&DATE1=20250401&COMP=A00047" target="_blank">點擊查看</a></td>
-            </tr>
-            <tr>
-                <td style='white-space: nowrap'>00936</td>
-                <td style='white-space: nowrap'>台新永續高息中小</td>
-                <td style='white-space: nowrap'>114年4月17日</td>
-                <td style='white-space: nowrap'>114年5月8日</td>
-                <td style='white-space: nowrap'>0.03</td>
-                <td><a href="https://mopsov.twse.com.tw/mops/web/ajax_t108sb19?step=2&firstin=1&TYPEK=all&SKIND=F&SEQ_NO=3&DATE1=20250401&COMP=A00047" target="_blank">點擊查看</a></td>
-            </tr>
-            <tr>
-                <td style='white-space: nowrap'>00908</td>
-                <td style='white-space: nowrap'>富邦入息REITs+</td>
-                <td style='white-space: nowrap'>114年4月23日</td>
-                <td style='white-space: nowrap'>114年5月19日</td>
-                <td style='white-space: nowrap'>0.146</td>
-                <td><a href="https://mopsov.twse.com.tw/mops/web/ajax_t108sb19?step=2&firstin=1&TYPEK=all&SKIND=F&SEQ_NO=13&DATE1=20250401&COMP=A00010" target="_blank">點擊查看</a></td>
-            </tr>
-            <tr>
-                <td style='white-space: nowrap'>00904</td>
-                <td style='white-space: nowrap'>新光臺灣半導體30</td>
-                <td style='white-space: nowrap'>114年4月22日</td>
-                <td style='white-space: nowrap'>114年5月20日</td>
-                <td style='white-space: nowrap'>0.15</td>
-                <td><a href="https://mopsov.twse.com.tw/mops/web/ajax_t108sb19?step=2&firstin=1&TYPEK=all&SKIND=F&SEQ_NO=1&DATE1=20250401&COMP=A00014" target="_blank">點擊查看</a></td>
-            </tr>
-            <tr>
-                <td style='white-space: nowrap'>00052</td>
-                <td style='white-space: nowrap'>富邦科技</td>
-                <td style='white-space: nowrap'>114年4月23日</td>
-                <td style='white-space: nowrap'>114年5月19日</td>
-                <td style='white-space: nowrap'>3.23</td>
-                <td><a href="https://mopsov.twse.com.tw/mops/web/ajax_t108sb19?step=2&firstin=1&TYPEK=all&SKIND=F&SEQ_NO=12&DATE1=20250401&COMP=A00010" target="_blank">點擊查看</a></td>
-            </tr>
-            <tr>
-                <td style='white-space: nowrap'>00717</td>
-                <td style='white-space: nowrap'>富邦美國特別股</td>
-                <td style='white-space: nowrap'>114年4月23日</td>
-                <td style='white-space: nowrap'>114年5月19日</td>
-                <td style='white-space: nowrap'>0.173</td>
-                <td><a href="https://mopsov.twse.com.tw/mops/web/ajax_t108sb19?step=2&firstin=1&TYPEK=all&SKIND=F&SEQ_NO=11&DATE1=20250401&COMP=A00010" target="_blank">點擊查看</a></td>
-            </tr>
-            <tr>
-                <td style='white-space: nowrap'>00733</td>
-                <td style='white-space: nowrap'>富邦臺灣中小</td>
-                <td style='white-space: nowrap'>114年4月23日</td>
-                <td style='white-space: nowrap'>114年5月19日</td>
-                <td style='white-space: nowrap'>0.072</td>
-                <td><a href="https://mopsov.twse.com.tw/mops/web/ajax_t108sb19?step=2&firstin=1&TYPEK=all&SKIND=F&SEQ_NO=10&DATE1=20250401&COMP=A00010" target="_blank">點擊查看</a></td>
-            </tr>
-            <tr>
-                <td style='white-space: nowrap'>00714</td>
-                <td style='white-space: nowrap'>群益道瓊美國地產</td>
-                <td style='white-space: nowrap'>114年4月21日</td>
-                <td style='white-space: nowrap'>114年5月16日</td>
-                <td style='white-space: nowrap'>0.123</td>
-                <td><a href="https://mopsov.twse.com.tw/mops/web/ajax_t108sb19?step=2&firstin=1&TYPEK=all&SKIND=F&SEQ_NO=3&DATE1=20250401&COMP=A00016" target="_blank">點擊查看</a></td>
-            </tr>
-            <tr>
-                <td style='white-space: nowrap'>00900</td>
-                <td style='white-space: nowrap'>富邦特選高股息30</td>
-                <td style='white-space: nowrap'>114年4月23日</td>
-                <td style='white-space: nowrap'>114年5月19日</td>
-                <td style='white-space: nowrap'>0.1</td>
-                <td><a href="https://mopsov.twse.com.tw/mops/web/ajax_t108sb19?step=2&firstin=1&TYPEK=all&SKIND=F&SEQ_NO=8&DATE1=20250401&COMP=A00010" target="_blank">點擊查看</a></td>
-            </tr>
-            <tr>
-                <td style='white-space: nowrap'>00730</td>
-                <td style='white-space: nowrap'>富邦臺灣優質高息</td>
-                <td style='white-space: nowrap'>114年4月23日</td>
-                <td style='white-space: nowrap'>114年5月19日</td>
-                <td style='white-space: nowrap'>0.1</td>
-                <td><a href="https://mopsov.twse.com.tw/mops/web/ajax_t108sb19?step=2&firstin=1&TYPEK=all&SKIND=F&SEQ_NO=7&DATE1=20250401&COMP=A00010" target="_blank">點擊查看</a></td>
-            </tr>
-            <tr>
-                <td style='white-space: nowrap'>00960</td>
-                <td style='white-space: nowrap'>野村全球航運龍頭</td>
-                <td style='white-space: nowrap'>114年4月18日</td>
-                <td style='white-space: nowrap'>114年5月16日</td>
-                <td style='white-space: nowrap'>0.18</td>
-                <td><a href="https://mopsov.twse.com.tw/mops/web/ajax_t108sb19?step=2&firstin=1&TYPEK=all&SKIND=F&SEQ_NO=1&DATE1=20250401&COMP=A00032" target="_blank">點擊查看</a></td>
-            </tr>
-            <tr>
-                <td style='white-space: nowrap'>00927</td>
-                <td style='white-space: nowrap'>群益半導體收益</td>
-                <td style='white-space: nowrap'>114年4月18日</td>
-                <td style='white-space: nowrap'>114年5月15日</td>
-                <td style='white-space: nowrap'>0.37</td>
-                <td><a href="https://mopsov.twse.com.tw/mops/web/ajax_t108sb19?step=2&firstin=1&TYPEK=all&SKIND=F&SEQ_NO=3&DATE1=20250331&COMP=A00016" target="_blank">點擊查看</a></td>
-            </tr>
-            <tr>
-                <td style='white-space: nowrap'>00953B</td>
-                <td style='white-space: nowrap'>群益優選非投等債</td>
-                <td style='white-space: nowrap'>114年4月2日</td>
-                <td style='white-space: nowrap'>114年4月30日</td>
-                <td style='white-space: nowrap'>0.07</td>
-                <td><a href="https://mopsov.twse.com.tw/mops/web/ajax_t108sb19?step=2&firstin=1&TYPEK=all&SKIND=F&SEQ_NO=2&DATE1=20250331&COMP=A00016" target="_blank">點擊查看</a></td>
-            </tr>
-            <tr>
-                <td style='white-space: nowrap'>00946</td>
-                <td style='white-space: nowrap'>群益科技高息成長</td>
-                <td style='white-space: nowrap'>114年4月2日</td>
-                <td style='white-space: nowrap'>114年4月30日</td>
-                <td style='white-space: nowrap'>0.025</td>
-                <td><a href="https://mopsov.twse.com.tw/mops/web/ajax_t108sb19?step=2&firstin=1&TYPEK=all&SKIND=F&SEQ_NO=1&DATE1=20250331&COMP=A00016" target="_blank">點擊查看</a></td>
-            </tr>
-            <tr>
-                <td style='white-space: nowrap'>00056</td>
-                <td style='white-space: nowrap'>元大高股息</td>
-                <td style='white-space: nowrap'>114年4月23日</td>
-                <td style='white-space: nowrap'>114年5月14日</td>
-                <td style='white-space: nowrap'>1.07</td>
-                <td><a href="https://mopsov.twse.com.tw/mops/web/ajax_t108sb19?step=2&firstin=1&TYPEK=all&SKIND=F&SEQ_NO=1&DATE1=20250331&COMP=A00005" target="_blank">點擊查看</a></td>
-            </tr>
-            <tr>
-                <td style='white-space: nowrap'>00944</td>
-                <td style='white-space: nowrap'>野村趨勢動能高息</td>
-                <td style='white-space: nowrap'>114年4月18日</td>
-                <td style='white-space: nowrap'>114年5月16日</td>
-                <td style='white-space: nowrap'>0.058</td>
-                <td><a href="https://mopsov.twse.com.tw/mops/web/ajax_t108sb19?step=2&firstin=1&TYPEK=all&SKIND=F&SEQ_NO=1&DATE1=20250331&COMP=A00032" target="_blank">點擊查看</a></td>
-            </tr>
-            <tr>
-                <td style='white-space: nowrap'>00939</td>
-                <td style='white-space: nowrap'>統一台灣高息動能</td>
-                <td style='white-space: nowrap'>114年4月1日</td>
-                <td style='white-space: nowrap'>114年4月25日</td>
-                <td style='white-space: nowrap'>0.05</td>
-                <td><a href="https://mopsov.twse.com.tw/mops/web/ajax_t108sb19?step=2&firstin=1&TYPEK=all&SKIND=F&SEQ_NO=1&DATE1=20250328&COMP=A00009" target="_blank">點擊查看</a></td>
-            </tr>
-            <tr>
-                <td style='white-space: nowrap'>00940</td>
-                <td style='white-space: nowrap'>元大台灣價值高息</td>
-                <td style='white-space: nowrap'>114年4月10日</td>
-                <td style='white-space: nowrap'>114年5月2日</td>
-                <td style='white-space: nowrap'>0.03</td>
-                <td><a href="https://mopsov.twse.com.tw/mops/web/ajax_t108sb19?step=2&firstin=1&TYPEK=all&SKIND=F&SEQ_NO=1&DATE1=20250324&COMP=A00005" target="_blank">點擊查看</a></td>
-            </tr>
-            <tr>
-                <td style='white-space: nowrap'>00713</td>
-                <td style='white-space: nowrap'>元大台灣高息低波</td>
-                <td style='white-space: nowrap'>114年3月21日</td>
-                <td style='white-space: nowrap'>114年4月15日</td>
-                <td style='white-space: nowrap'>1.4</td>
-                <td><a href="https://mopsov.twse.com.tw/mops/web/ajax_t108sb19?step=2&firstin=1&TYPEK=all&SKIND=F&SEQ_NO=1&DATE1=20250319&COMP=A00005" target="_blank">點擊查看</a></td>
-            </tr>
-            <tr>
-                <td style='white-space: nowrap'>00953B</td>
-                <td style='white-space: nowrap'>群益優選非投等債</td>
-                <td style='white-space: nowrap'>114年4月2日</td>
-                <td style='white-space: nowrap'>114年4月30日</td>
-                <td style='white-space: nowrap'>0.07</td>
-                <td><a href="https://mopsov.twse.com.tw/mops/web/ajax_t108sb19?step=2&firstin=1&TYPEK=all&SKIND=F&SEQ_NO=1&DATE1=20250318&COMP=A00016" target="_blank">點擊查看</a></td>
-            </tr>
-            <tr>
-                <td style='white-space: nowrap'>00918</td>
-                <td style='white-space: nowrap'>大華優利高填息30</td>
-                <td style='white-space: nowrap'>114年3月20日</td>
-                <td style='white-space: nowrap'>114年4月15日</td>
-                <td style='white-space: nowrap'>0.7</td>
-                <td><a href="https://mopsov.twse.com.tw/mops/web/ajax_t108sb19?step=2&firstin=1&TYPEK=all&SKIND=F&SEQ_NO=1&DATE1=20250318&COMP=A00049" target="_blank">點擊查看</a></td>
-            </tr>
-            <tr>
-                <td style='white-space: nowrap'>00930</td>
-                <td style='white-space: nowrap'>永豐ESG低碳高息</td>
-                <td style='white-space: nowrap'>114年3月20日</td>
-                <td style='white-space: nowrap'>114年4月17日</td>
-                <td style='white-space: nowrap'>0.25</td>
-                <td><a href="https://mopsov.twse.com.tw/mops/web/ajax_t108sb19?step=2&firstin=1&TYPEK=all&SKIND=F&SEQ_NO=2&DATE1=20250318&COMP=A00025" target="_blank">點擊查看</a></td>
-            </tr>
-            <tr>
-                <td style='white-space: nowrap'>00946</td>
-                <td style='white-space: nowrap'>群益科技高息成長</td>
-                <td style='white-space: nowrap'>114年4月2日</td>
-                <td style='white-space: nowrap'>114年4月30日</td>
-                <td style='white-space: nowrap'>0.025</td>
-                <td><a href="https://mopsov.twse.com.tw/mops/web/ajax_t108sb19?step=2&firstin=1&TYPEK=all&SKIND=F&SEQ_NO=1&DATE1=20250317&COMP=A00016" target="_blank">點擊查看</a></td>
-            </tr>
-            <tr>
-                <td style='white-space: nowrap'>00711B</td>
-                <td style='white-space: nowrap'>復華彭博新興債</td>
-                <td style='white-space: nowrap'>114年3月19日</td>
-                <td style='white-space: nowrap'>114年4月16日</td>
-                <td style='white-space: nowrap'>0.19</td>
-                <td><a href="https://mopsov.twse.com.tw/mops/web/ajax_t108sb19?step=2&firstin=1&TYPEK=all&SKIND=F&SEQ_NO=4&DATE1=20250317&COMP=A00022" target="_blank">點擊查看</a></td>
-            </tr>
-            <tr>
-                <td style='white-space: nowrap'>00712</td>
-                <td style='white-space: nowrap'>復華富時不動產</td>
-                <td style='white-space: nowrap'>114年3月19日</td>
-                <td style='white-space: nowrap'>114年4月16日</td>
-                <td style='white-space: nowrap'>0.183</td>
-                <td><a href="https://mopsov.twse.com.tw/mops/web/ajax_t108sb19?step=2&firstin=1&TYPEK=all&SKIND=F&SEQ_NO=3&DATE1=20250317&COMP=A00022" target="_blank">點擊查看</a></td>
-            </tr>
-            <tr>
-                <td style='white-space: nowrap'>00915</td>
-                <td style='white-space: nowrap'>凱基優選高股息30</td>
-                <td style='white-space: nowrap'>114年3月19日</td>
-                <td style='white-space: nowrap'>114年4月15日</td>
-                <td style='white-space: nowrap'>0.5</td>
-                <td><a href="https://mopsov.twse.com.tw/mops/web/ajax_t108sb19?step=2&firstin=1&TYPEK=all&SKIND=F&SEQ_NO=1&DATE1=20250317&COMP=A00041" target="_blank">點擊查看</a></td>
-            </tr>
-            <tr>
-                <td style='white-space: nowrap'>00710B</td>
-                <td style='white-space: nowrap'>復華彭博非投等債</td>
-                <td style='white-space: nowrap'>114年3月19日</td>
-                <td style='white-space: nowrap'>114年4月16日</td>
-                <td style='white-space: nowrap'>0.32</td>
-                <td><a href="https://mopsov.twse.com.tw/mops/web/ajax_t108sb19?step=2&firstin=1&TYPEK=all&SKIND=F&SEQ_NO=2&DATE1=20250317&COMP=A00022" target="_blank">點擊查看</a></td>
-            </tr>
-            <tr>
-                <td style='white-space: nowrap'>00728</td>
-                <td style='white-space: nowrap'>第一金工業30</td>
-                <td style='white-space: nowrap'>114年3月20日</td>
-                <td style='white-space: nowrap'>114年4月15日</td>
-                <td style='white-space: nowrap'>0.771</td>
-                <td><a href="https://mopsov.twse.com.tw/mops/web/ajax_t108sb19?step=2&firstin=1&TYPEK=all&SKIND=F&SEQ_NO=1&DATE1=20250317&COMP=5801" target="_blank">點擊查看</a></td>
-            </tr>
-            <tr>
-                <td style='white-space: nowrap'>00939</td>
-                <td style='white-space: nowrap'>統一台灣高息動能</td>
-                <td style='white-space: nowrap'>114年4月1日</td>
-                <td style='white-space: nowrap'>114年4月25日</td>
-                <td style='white-space: nowrap'>0.05</td>
-                <td><a href="https://mopsov.twse.com.tw/mops/web/ajax_t108sb19?step=2&firstin=1&TYPEK=all&SKIND=F&SEQ_NO=1&DATE1=20250317&COMP=A00009" target="_blank">點擊查看</a></td>
-            </tr>
-            <tr>
-                <td style='white-space: nowrap'>00929</td>
-                <td style='white-space: nowrap'>復華台灣科技優息</td>
-                <td style='white-space: nowrap'>114年3月19日</td>
-                <td style='white-space: nowrap'>114年4月16日</td>
-                <td style='white-space: nowrap'>0.05</td>
-                <td><a href="https://mopsov.twse.com.tw/mops/web/ajax_t108sb19?step=2&firstin=1&TYPEK=all&SKIND=F&SEQ_NO=1&DATE1=20250317&COMP=A00022" target="_blank">點擊查看</a></td>
-            </tr>
-            <tr>
-                <td style='white-space: nowrap'>00964</td>
-                <td style='white-space: nowrap'>中信亞太高股息</td>
-                <td style='white-space: nowrap'>114年3月18日</td>
-                <td style='white-space: nowrap'>114年4月15日</td>
-                <td style='white-space: nowrap'>0.04</td>
-                <td><a href="https://mopsov.twse.com.tw/mops/web/ajax_t108sb19?step=2&firstin=1&TYPEK=all&SKIND=F&SEQ_NO=10&DATE1=20250314&COMP=A00026" target="_blank">點擊查看</a></td>
-            </tr>
-            <tr>
-                <td style='white-space: nowrap'>00963</td>
-                <td style='white-space: nowrap'>中信全球高股息</td>
-                <td style='white-space: nowrap'>114年3月18日</td>
-                <td style='white-space: nowrap'>114年4月15日</td>
-                <td style='white-space: nowrap'>0.055</td>
-                <td><a href="https://mopsov.twse.com.tw/mops/web/ajax_t108sb19?step=2&firstin=1&TYPEK=all&SKIND=F&SEQ_NO=9&DATE1=20250314&COMP=A00026" target="_blank">點擊查看</a></td>
-            </tr>
-            <tr>
-                <td style='white-space: nowrap'>00934</td>
-                <td style='white-space: nowrap'>中信成長高股息</td>
-                <td style='white-space: nowrap'>114年3月18日</td>
-                <td style='white-space: nowrap'>114年4月15日</td>
-                <td style='white-space: nowrap'>0.026</td>
-                <td><a href="https://mopsov.twse.com.tw/mops/web/ajax_t108sb19?step=2&firstin=1&TYPEK=all&SKIND=F&SEQ_NO=7&DATE1=20250314&COMP=A00026" target="_blank">點擊查看</a></td>
-            </tr>
-            <tr>
-                <td style='white-space: nowrap'>00896</td>
-                <td style='white-space: nowrap'>中信綠能及電動車</td>
-                <td style='white-space: nowrap'>114年3月18日</td>
-                <td style='white-space: nowrap'>114年4月15日</td>
-                <td style='white-space: nowrap'>0.45</td>
-                <td><a href="https://mopsov.twse.com.tw/mops/web/ajax_t108sb19?step=2&firstin=1&TYPEK=all&SKIND=F&SEQ_NO=6&DATE1=20250314&COMP=A00026" target="_blank">點擊查看</a></td>
-            </tr>
-            <tr>
-                <td style='white-space: nowrap'>00935</td>
-                <td style='white-space: nowrap'>野村臺灣新科技50</td>
-                <td style='white-space: nowrap'>114年3月18日</td>
-                <td style='white-space: nowrap'>114年4月15日</td>
-                <td style='white-space: nowrap'>0.6</td>
-                <td><a href="https://mopsov.twse.com.tw/mops/web/ajax_t108sb19?step=2&firstin=1&TYPEK=all&SKIND=F&SEQ_NO=2&DATE1=20250314&COMP=A00032" target="_blank">點擊查看</a></td>
-            </tr>
-            <tr>
-                <td style='white-space: nowrap'>00944</td>
-                <td style='white-space: nowrap'>野村趨勢動能高息</td>
-                <td style='white-space: nowrap'>114年3月18日</td>
-                <td style='white-space: nowrap'>114年4月15日</td>
-                <td style='white-space: nowrap'>0.058</td>
-                <td><a href="https://mopsov.twse.com.tw/mops/web/ajax_t108sb19?step=2&firstin=1&TYPEK=all&SKIND=F&SEQ_NO=1&DATE1=20250314&COMP=A00032" target="_blank">點擊查看</a></td>
-            </tr>
-            <tr>
-                <td style='white-space: nowrap'>00945B</td>
-                <td style='white-space: nowrap'>凱基美國非投等債</td>
-                <td style='white-space: nowrap'>114年3月18日</td>
-                <td style='white-space: nowrap'>114年4月15日</td>
-                <td style='white-space: nowrap'>0.102</td>
-                <td><a href="https://mopsov.twse.com.tw/mops/web/ajax_t108sb19?step=2&firstin=1&TYPEK=all&SKIND=F&SEQ_NO=1&DATE1=20250314&COMP=A00041" target="_blank">點擊查看</a></td>
-            </tr>
-            <tr>
-                <td style='white-space: nowrap'>00919</td>
-                <td style='white-space: nowrap'>群益台灣精選高息</td>
-                <td style='white-space: nowrap'>114年3月18日</td>
-                <td style='white-space: nowrap'>114年4月15日</td>
-                <td style='white-space: nowrap'>0.72</td>
-                <td><a href="https://mopsov.twse.com.tw/mops/web/ajax_t108sb19?step=2&firstin=1&TYPEK=all&SKIND=F&SEQ_NO=4&DATE1=20250314&COMP=A00016" target="_blank">點擊查看</a></td>
-            </tr>
-            <tr>
-                <td style='white-space: nowrap'>00900</td>
-                <td style='white-space: nowrap'>富邦特選高股息30</td>
-                <td style='white-space: nowrap'>114年3月18日</td>
-                <td style='white-space: nowrap'>114年4月14日</td>
-                <td style='white-space: nowrap'>0.1</td>
-                <td><a href="https://mopsov.twse.com.tw/mops/web/ajax_t108sb19?step=2&firstin=1&TYPEK=all&SKIND=F&SEQ_NO=4&DATE1=20250314&COMP=A00010" target="_blank">點擊查看</a></td>
-            </tr>
-            <tr>
-                <td style='white-space: nowrap'>00730</td>
-                <td style='white-space: nowrap'>富邦臺灣優質高息</td>
-                <td style='white-space: nowrap'>114年3月18日</td>
-                <td style='white-space: nowrap'>114年4月14日</td>
-                <td style='white-space: nowrap'>0.1</td>
-                <td><a href="https://mopsov.twse.com.tw/mops/web/ajax_t108sb19?step=2&firstin=1&TYPEK=all&SKIND=F&SEQ_NO=2&DATE1=20250314&COMP=A00010" target="_blank">點擊查看</a></td>
-            </tr>
-            <tr>
-                <td style='white-space: nowrap'>00936</td>
-                <td style='white-space: nowrap'>台新永續高息中小</td>
-                <td style='white-space: nowrap'>114年3月17日</td>
-                <td style='white-space: nowrap'>114年4月8日</td>
-                <td style='white-space: nowrap'>0.03</td>
-                <td><a href="https://mopsov.twse.com.tw/mops/web/ajax_t108sb19?step=2&firstin=1&TYPEK=all&SKIND=F&SEQ_NO=1&DATE1=20250313&COMP=A00047" target="_blank">點擊查看</a></td>
-            </tr>
-            <tr>
-                <td style='white-space: nowrap'>00922</td>
-                <td style='white-space: nowrap'>國泰台灣領袖50</td>
-                <td style='white-space: nowrap'>114年3月18日</td>
-                <td style='white-space: nowrap'>114年4月15日</td>
-                <td style='white-space: nowrap'>0.63</td>
-                <td><a href="https://mopsov.twse.com.tw/mops/web/ajax_t108sb19?step=2&firstin=1&TYPEK=all&SKIND=F&SEQ_NO=1&DATE1=20250313&COMP=A00037" target="_blank">點擊查看</a></td>
-            </tr>
-            <tr>
-                <td style='white-space: nowrap'>00921</td>
-                <td style='white-space: nowrap'>兆豐龍頭等權重</td>
-                <td style='white-space: nowrap'>114年3月18日</td>
-                <td style='white-space: nowrap'>114年4月8日</td>
-                <td style='white-space: nowrap'>0.08</td>
-                <td><a href="https://mopsov.twse.com.tw/mops/web/ajax_t108sb19?step=2&firstin=1&TYPEK=all&SKIND=F&SEQ_NO=1&DATE1=20250311&COMP=A00001" target="_blank">點擊查看</a></td>
-            </tr>
-            <tr>
-                <td style='white-space: nowrap'>00940</td>
-                <td style='white-space: nowrap'>元大台灣價值高息</td>
-                <td style='white-space: nowrap'>114年3月11日</td>
-                <td style='white-space: nowrap'>114年4月1日</td>
-                <td style='white-space: nowrap'>0.03</td>
-                <td><a href="https://mopsov.twse.com.tw/mops/web/ajax_t108sb19?step=2&firstin=1&TYPEK=all&SKIND=F&SEQ_NO=1&DATE1=20250307&COMP=A00005" target="_blank">點擊查看</a></td>
-            </tr>
+    <h2>ETF 最新配息公告 (Plotly.js)</h2>
+    <input type="text" id="searchInput" placeholder="🔍 搜尋代號、名稱..." onkeyup="filterTable()">
 
-        </tbody>
-    </table>
-    <script>
-        function filterTable() {
-            const input = document.getElementById("searchInput").value.toLowerCase();
-            const rows = document.querySelectorAll("#dataTable tbody tr");
-            rows.forEach(row => {
-                const text = row.innerText.toLowerCase();
-                row.style.display = text.includes(input) ? "" : "none";
+    <div class="overflow-x-auto">
+        <table id="dataTable">
+            <thead>
+                <tr>
+                    <th onclick="sortTable(0, this)">ETF代號</th>
+                    <th>ETF名稱</th>
+                    <th onclick="sortTable(2, this)">除息日</th>
+                    <th onclick="sortTable(3, this)">發放日</th>
+                    <th onclick="sortTable(4, this)">預估配息</th>
+                    <th>公告連結</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="etf-code">0052</td> <td>富邦臺灣科技指數</td>
+                    <td>2024/04/18</td>
+                    <td>2024/05/15</td>
+                    <td>6.43</td>
+                    <td><a href="https://mops.twse.com.tw" target="_blank" rel="noopener noreferrer">公告連結</a></td>
+                </tr>
+                <tr>
+                    <td class="etf-code">00878</td>
+                    <td>國泰永續高股息</td>
+                    <td>2024/05/16</td> <td>2024/06/13</td>
+                    <td>0.51</td> <td><a href="https://mops.twse.com.tw" target="_blank" rel="noopener noreferrer">公告連結</a></td>
+                </tr>
+                </tbody>
+        </table>
+    </div>
+
+    <div id="plotlyDividendChartContainer">
+        <div id="plotlyDividendChart" style="width:100%; max-width:800px; height:400px; margin: 0 auto;">
+             <div class="chart-placeholder">
+                點擊表格中的 ETF 代號以載入配息圖表
+            </div>
+        </div>
+    </div>
+
+    <div id="messageBox" class="message-box"></div>
+
+<script>
+    // 確保 DOM 完全載入後才執行腳本
+    document.addEventListener("DOMContentLoaded", () => {
+        // 為表格中的 ETF 代號儲存格綁定點擊事件
+        document.querySelectorAll("#dataTable tbody tr .etf-code").forEach(etfCell => {
+            etfCell.title = '點我查看配息圖表'; // 添加提示文字
+            etfCell.addEventListener("click", () => {
+                const symbol = etfCell.innerText.trim();
+                // 假設 JSON 檔案存放在 'json/' 資料夾下
+                // 為了方便演示，我們將直接使用您提供的 0052.json 內容
+                // 在實際應用中，您應該確保 json/{symbol}.json 檔案存在
+                const dataUrl = `json/${symbol}.json`;
+
+                // 更新圖表容器為載入中狀態
+                const chartDiv = document.getElementById('plotlyDividendChart');
+                chartDiv.innerHTML = '<div class="chart-placeholder">圖表載入中...</div>';
+
+
+                fetch(dataUrl)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`⚠️ ${symbol} 的配息資料不存在 (${response.status})`);
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        // 檢查資料是否為空或格式不正確
+                        if (!Array.isArray(data) || data.length === 0) {
+                            throw new Error(`⚠️ ${symbol} 的配息資料格式錯誤或為空`);
+                        }
+                        // 從 JSON 資料中提取標籤 (除息日) 和值 (每單位股利)
+                        const labels = data.map(item => item["除息日"]).reverse(); // 通常希望日期從左到右遞增
+                        const values = data.map(item => parseFloat(item["每單位股利"])).reverse();
+                        renderPlotlyChart(symbol, labels, values);
+                    })
+                    .catch(error => {
+                        console.error('載入配息資料錯誤:', error);
+                        showMessage(`無法載入 ${symbol} 的配息資料: ${error.message}`);
+                        chartDiv.innerHTML = `<div class="chart-placeholder">無法載入 ${symbol} 的圖表資料。請確認 json/${symbol}.json 檔案存在且格式正確。</div>`;
+                    });
             });
-        }
+        });
+    });
 
-        function sortTable(n, thElement) {
-            const table = document.getElementById("dataTable");
-            const tbody = table.tBodies[0];
-            const rowsArray = Array.from(tbody.querySelectorAll("tr"));
-            const isAsc = thElement.classList.contains("asc");
+    /**
+     * 使用 Plotly.js 渲染長條圖
+     * @param {string} symbol - ETF 代號
+     * @param {string[]} labels - X 軸標籤 (除息日)
+     * @param {number[]} values - Y 軸值 (每單位股利)
+     */
+    function renderPlotlyChart(symbol, labels, values) {
+        const chartDiv = document.getElementById('plotlyDividendChart');
+        chartDiv.innerHTML = ''; // 清除 placeholder 或舊圖表
 
-            Array.from(table.querySelectorAll("th")).forEach(th => th.classList.remove("asc", "desc"));
-            thElement.classList.toggle("asc", !isAsc);
-            thElement.classList.toggle("desc", isAsc);
-
-            rowsArray.sort((a, b) => {
-                const x = a.children[n].innerText.trim();
-                const y = b.children[n].innerText.trim();
-
-                const xNum = parseFloat(x.replace(/[^\d.-]/g, ""));
-                const yNum = parseFloat(y.replace(/[^\d.-]/g, ""));
-                const dateX = new Date(x);
-                const dateY = new Date(y);
-
-                let cmp = 0;
-                if (!isNaN(xNum) && !isNaN(yNum)) {
-                    cmp = xNum - yNum;
-                } else if (!isNaN(dateX.getTime()) && !isNaN(dateY.getTime())) {
-                    cmp = dateX - dateY;
-                } else {
-                    cmp = x.localeCompare(y);
+        const trace = {
+            x: labels,
+            y: values,
+            type: 'bar',
+            name: `${symbol} 配息金額`,
+            marker: {
+                color: '#4299e1', // Tailwind blue-500
+                line: {
+                    color: '#2b6cb0', // Tailwind blue-700
+                    width: 1
                 }
+            },
+            text: values.map(String), // 在長條上顯示數值
+            textposition: 'auto',
+            hoverinfo: 'x+y' // 懸停時顯示 x 和 y 值
+        };
 
-                return isAsc ? -cmp : cmp;
-            });
+        const layout = {
+            title: {
+                text: `${symbol} 歷次配息紀錄`,
+                font: {
+                    size: 20,
+                    color: '#2d3748' // Tailwind gray-800
+                }
+            },
+            xaxis: {
+                title: '除息日',
+                type: 'category', // 將 X 軸視為分類，以正確顯示日期字串
+                tickfont: {
+                    size: 10
+                },
+                automargin: true
+            },
+            yaxis: {
+                title: '每單位股利 (元)',
+                rangemode: 'tozero', // 確保 Y 軸從 0 開始
+                tickfont: {
+                    size: 10
+                },
+                automargin: true
+            },
+            bargap: 0.2, // 長條之間的間隔
+            paper_bgcolor: '#ffffff', // 圖表背景色
+            plot_bgcolor: '#f7fafc', // 繪圖區域背景色 (Tailwind gray-100)
+            margin: { l: 60, r: 30, b: 100, t: 80, pad: 4 }, // 調整邊距以容納標籤
+            font: {
+                family: 'Inter, Arial, sans-serif',
+                color: '#4a5568' // Tailwind gray-700
+            }
+        };
 
-            rowsArray.forEach(row => tbody.appendChild(row));
+        const config = {
+            responsive: true, // 使圖表自適應容器大小
+            displaylogo: false, // 不顯示 Plotly logo
+            modeBarButtonsToRemove: ['sendDataToCloud', 'lasso2d', 'select2d'] // 移除一些不需要的按鈕
+        };
+
+        Plotly.newPlot('plotlyDividendChart', [trace], layout, config);
+    }
+
+    /**
+     * 顯示訊息提示
+     * @param {string} message - 要顯示的訊息
+     * @param {boolean} isError - 是否為錯誤訊息 (影響背景色)
+     */
+    function showMessage(message, isError = true) {
+        const messageBox = document.getElementById('messageBox');
+        messageBox.textContent = message;
+        messageBox.style.backgroundColor = isError ? '#ef4444' : '#10b981'; // red-500 for error, green-500 for success
+        messageBox.style.display = 'block';
+        setTimeout(() => {
+            messageBox.style.display = 'none';
+        }, 3000); // 3 秒後自動隱藏
+    }
+
+    /**
+     * 過濾表格內容
+     */
+    function filterTable() {
+        const input = document.getElementById("searchInput").value.toLowerCase();
+        const table = document.getElementById("dataTable");
+        const tr = table.getElementsByTagName("tr");
+
+        // 從 1 開始循環，跳過表頭 (thead)
+        for (let i = 1; i < tr.length; i++) {
+            let display = "none";
+            const tds = tr[i].getElementsByTagName("td");
+            for (let j = 0; j < tds.length; j++) {
+                if (tds[j]) {
+                    if (tds[j].innerText.toLowerCase().includes(input)) {
+                        display = "";
+                        break;
+                    }
+                }
+            }
+            tr[i].style.display = display;
         }
-    </script>
+    }
+
+    /**
+     * 表格排序功能
+     * @param {number} n - 要排序的欄位索引
+     * @param {HTMLElement} th - 被點擊的表頭元素
+     */
+    function sortTable(n, th) {
+        const table = document.getElementById("dataTable");
+        let tbody = table.tBodies[0];
+        let rows = Array.from(tbody.rows);
+        let switching = true;
+        let dir = "asc"; // 預設排序方向
+        let switchcount = 0;
+
+        // 切換排序方向
+        if (th.classList.contains("asc")) {
+            dir = "desc";
+            th.classList.remove("asc");
+            th.classList.add("desc");
+        } else if (th.classList.contains("desc")) {
+            dir = "asc";
+            th.classList.remove("desc");
+            th.classList.add("asc");
+        } else {
+            // 移除其他表頭的排序指示
+            Array.from(th.parentNode.children).forEach(header => {
+                header.classList.remove("asc", "desc");
+            });
+            th.classList.add("asc");
+        }
+
+
+        while (switching) {
+            switching = false;
+            for (let i = 0; i < (rows.length - 1); i++) {
+                let shouldSwitch = false;
+                let x = rows[i].getElementsByTagName("TD")[n];
+                let y = rows[i + 1].getElementsByTagName("TD")[n];
+                let xContent = x.innerText.toLowerCase();
+                let yContent = y.innerText.toLowerCase();
+
+                // 嘗試轉換為數字進行比較，如果失敗則按字串比較
+                let xVal = parseFloat(xContent);
+                let yVal = parseFloat(yContent);
+
+                if (!isNaN(xVal) && !isNaN(yVal)) { // 如果是數字
+                    if (dir === "asc") {
+                        if (xVal > yVal) {
+                            shouldSwitch = true;
+                            break;
+                        }
+                    } else if (dir === "desc") {
+                        if (xVal < yVal) {
+                            shouldSwitch = true;
+                            break;
+                        }
+                    }
+                } else { // 如果是字串 (或日期等)
+                     // 對於日期格式 (YYYY/MM/DD 或 MM/DD)，嘗試轉換比較
+                    if (isDateString(xContent) && isDateString(yContent)) {
+                         if (dir === "asc") {
+                            if (compareDates(xContent, yContent) > 0) {
+                                shouldSwitch = true; break;
+                            }
+                        } else if (dir === "desc") {
+                            if (compareDates(xContent, yContent) < 0) {
+                                shouldSwitch = true; break;
+                            }
+                        }
+                    } else { // 一般字串比較
+                        if (dir === "asc") {
+                            if (xContent > yContent) {
+                                shouldSwitch = true;
+                                break;
+                            }
+                        } else if (dir === "desc") {
+                            if (xContent < yContent) {
+                                shouldSwitch = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+            if (shouldSwitch) {
+                rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+                switching = true;
+                switchcount++;
+            }
+        }
+    }
+
+    function isDateString(str) {
+        return /^\d{4}\/\d{1,2}\/\d{1,2}$/.test(str) || /^\d{1,2}\/\d{1,2}$/.test(str);
+    }
+
+    function compareDates(dateStr1, dateStr2) {
+        // 簡單的日期比較，可以根據需要擴展
+        // 假設格式為 YYYY/MM/DD 或 MM/DD
+        // 為了簡化，我們只比較字串；更可靠的方法是轉換為 Date 物件
+        // 但對於 MM/DD 格式，需要年份才能準確比較，這裡僅作示意
+        return dateStr1.localeCompare(dateStr2);
+    }
+
+</script>
 </body>
 </html>
