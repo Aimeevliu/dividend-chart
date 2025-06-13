@@ -19368,6 +19368,10 @@ function sortTable(n, th) {
     });
     rows.forEach(row => tbody.appendChild(row));
 }
+window.addEventListener("load", () => {
+    const height = document.body.scrollHeight;
+    window.parent.postMessage({ iframeHeight: height }, "*");
+});
 </script>
 </body>
 </html>
