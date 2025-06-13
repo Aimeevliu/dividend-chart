@@ -22,18 +22,19 @@ table.data-table {
 </head>
 <body>
     <h2>2025 年股利配發日整理表</h2>
-    <table id="dataTable" class="data-table">
+    <div style="max-height: 600px; overflow-y: auto;">
+      <table id="dataTable" class="data-table">
         <thead>
-            <tr>
-                <th onclick="sortTable(0, this)">公司代號</th>
-                <th onclick="sortTable(1, this)">公司名稱</th>
-                <th onclick="sortTable(2, this)">股利所屬年(季)度</th>
-                <th onclick="sortTable(3, this)">現金股利</th>
-                <th onclick="sortTable(4, this)">股票股利</th>
-                <th onclick="sortTable(5, this)">權利分派基準日</th>
-                <th onclick="sortTable(6, this)">除息交易日</th>
-                <th onclick="sortTable(7, this)">現金股利發放日</th>
-            </tr>
+          <tr>
+            <th onclick="sortTable(0, this)">公司代號</th>
+            <th onclick="sortTable(1, this)">公司名稱</th>
+            <th onclick="sortTable(2, this)">股利所屬年(季)度</th>
+            <th onclick="sortTable(3, this)">現金股利</th>
+            <th onclick="sortTable(4, this)">股票股利</th>
+            <th onclick="sortTable(5, this)">權利分派基準日</th>
+            <th onclick="sortTable(6, this)">除息交易日</th>
+            <th onclick="sortTable(7, this)">現金股利發放日</th>
+          </tr>
         </thead>
         <tbody>
             <tr>
